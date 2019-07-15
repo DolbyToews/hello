@@ -33,3 +33,9 @@ for i in range(0, n):
             #Make Diffusion Constant whatever the MDS is divided by 2d
             #selects the "x" and "y" coordinates of each P[j] for calculation of MSD
 fileout.close()
+D = numpy.genfromtxt("coordinatesold.txt")
+for q in range(1, (2 * k), 2):
+    pylab.title("Random Walk ($n = " + str(n) + "$ steps)") 
+    pylab.plot(D[:, q - 1], D[:, q]) 
+    pylab.savefig("rand_walk"+str(n)+".png",bbox_inches="tight",dpi=600) 
+    pylab.show() 
