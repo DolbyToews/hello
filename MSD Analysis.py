@@ -12,14 +12,14 @@ D = numpy.genfromtxt("coordinatesold.txt")
 MSD_List = []
 DC_List = []
 fileout = open ("msdanalysis.txt", "w")
+print("i  ", end = " ", file= fileout) 
+for q in range(0, k):
+    print("P[", q, "]", "  ", end = " ", file= fileout)#might need different spacing for all d=1,2,3
+    if q == k - 1:
+        print(file= fileout)
 for i in range(0, 1):
     print(i, D[i], file= fileout)
-#print("MSD=", numpy.mean(MSD), file=fileout)
-#print("diffussion constant=", numpy.mean(MSD)/(2 * d * i), file=fileout)
-#print(file= fileout)#this forces it to make a new line after the row is complete
 for i in range(1, n):
-    #for x in range(1, (2 * k) + 1):
-        #MSD = ((D[i, x] - D[0,x]))
     MSD = sum(((D[i] - D[0])**2)/k)#made up term used to calculate MSD
     MSD_List.append(MSD)
     DC = (MSD/(2 * d * i))
@@ -28,15 +28,15 @@ for i in range(1, n):
     print("MSD=", MSD, "DC=", DC, file= fileout)
 fileout.close()
 fig, ax = plt.subplots()
-ax.set(xlabel='time (s)', ylabel='MSD',
-       title='Means Squared Displacement over Time')
+ax.set(xlabel='time (s)', ylabel='Mean Squared Displacement',
+       title="Mean Squared Displacement over Time($n = " + str(n) + "$ steps, $k = " + str(k) + "$ particles)")
 ax.grid()
 ax.plot(range(1, n), MSD_List)
 plt.show()
 fig.savefig("MSD.png")
 fig, ax = plt.subplots()
-ax.set(xlabel='time (s)', ylabel='DC',
-       title='Diffussion Constant modelled over Time')
+ax.set(xlabel='time (s)', ylabel='Diffussion Constant',
+       title="Diffussion Constant over Time($n = " + str(n) + "$ steps, $k = " + str(k) + "$ particles)")
 ax.grid()
 ax.plot(range(1, n), DC_List)
 plt.show()
