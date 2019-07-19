@@ -11,9 +11,10 @@ f=2 #number of "type 2" particles spawning in area 2
 d=2 #number of dimensions
 E = numpy.zeros(k + c + g + f)#default energy for now, may change to a equation and move placement of it
 #creates a energy for each particle for each position
-a=0#lower bound for overall boundaries and second square randomization
+a=4#lower bound for overall boundaries and second square randomization
 b=10#upper bound for overall boundaries
-h=5#separates areas into area one and area two, and sets x=5 boundrary
+h=7#separates areas into area one and area two, and sets x=5 boundrary
+Trans=([8, 7], [9, 7])#need to test that this rejects stuff not in here
 T=1#thermal energy test value
 DC1 = ([a], [h], [b])#sets upper and lower boundaries at y=1 y= 5(divider) and y=10
 #as well as boundaries at x=5x=10 x=1(unused due to shift of position)
@@ -51,7 +52,10 @@ for i in range(0, n):
         else:
             o = 0
             if DC1 in P[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
-                E[j] = math.inf
+                if Trans in P[j]:
+                    E[j] = 0
+                elif Trans not in P[j]:
+                    E[j] = math.inf
             elif DC1 not in P[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
                 E[j] = 0         
     if E[j] > E_old:
