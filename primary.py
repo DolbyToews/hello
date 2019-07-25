@@ -3,7 +3,7 @@ import matplotlib
 import pylab
 import random
 import math
-n=1000 #number of timesteps taken
+n=100 #number of timesteps taken
 k=2 #number of "type 1" particles spawning in area one
 c=0 #number of "type 2" particles spawning in area one
 g=0 #number of "type 1" particles spawning in area 2
@@ -11,15 +11,17 @@ f=2 #number of "type 2" particles spawning in area 2
 d=2 #number of dimensions
 E = numpy.zeros(k + c + g + f)#default energy for now, may change to a equation and move placement of it
 #creates a energy for each particle for each position
-a=0#lower bound for x and x-randomization
-b=10#upper bound for x and x-randomization
+a=6#lower bound for x and x-randomization
+b=9#upper bound for x and x-randomization
 h=7#separates areas into area one and area two, and sets y inter-area boundrary
+uph=h+1
 y=4#lower bound for y and y-randomization
-z=10#upper bound for y and y randomization
-Trans=([[8, 7]])#x-coords on the cell membrane which act as holes
+z=11#upper bound for y and y randomization
+Trans=([7], [8])#x-coords on the cell membrane which act as holes
 T=1#thermal energy test value
 DC1 = ([a], [b])#sets upper and lower boundaries at x=1  and x=10
-DC3 = ([y], [h], [z])#sets upper and lower y boundaries and the cell membrane level
+DC3 = ([y], [h], [uph], [z])#sets upper and lower y boundaries and the cell membrane level
+DC4 = ([h], [uph])
 A1x = numpy.random.randint(low=a + 1, high=b - 1, size =((k + c), 1))#randomization for area one x-bound
 A1y = numpy.random.randint(low=y + 1, high=h - 1, size =((k + c), 1))#randomization for area one y-bound
 A1 = numpy.concatenate((A1x, A1y), axis= 1)#matrix of positions of area one
@@ -39,12 +41,18 @@ x_cord = x[0]
 y_cord = x[1]
 arealow = ((b - 1) - (a + 1)) * ((h) - (y + 1))#calculates the total area of the lower compartment
 areahigh = ((b - 1) - (a + 1)) * ((z - 1) - (h))#calculates the total area of the higher compartment
+Ising = numpy.zeros((len(Trans), 2))
+for u in range(0, len(Trans)):
+    Ising[u] = numpy.zeros((1, 2))
+upspin = numpy.ones(2)
+downspin = -1 * numpy.ones(2)
 fileout = open ("coordinatesold.txt", "w")
 for i in range(0, n):
     type1low = 0
     type1high = 0
     type2low = 0
     type2high = 0
+    y_cord_old = x[1].copy()
     j = random.randint(0, (k + c + g + f) - 1)#this picks which particle moves
     P_old = P[j].copy() #saves old position in case the new move is rejected
     P[j] = P[j] + random.choice(M) #the new move
@@ -58,8 +66,16 @@ for i in range(0, n):
             #o = 1 #this may or may not be a feature incorporated in the future
             E[j] = math.inf#energy set to infinite if they collide
             break #if the particle moves into the same position as another particle, it's energy is infinite and the loop stops there
-        elif Trans in x_cord[j] and h in y_cord[j]:#tells us if particle is on a transporter
-            E[j] = 0
+        elif Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
+            u = Trans.index(x_cord[j])
+            if uph in y_cord_old[j] and h in y_cord[j]:
+                if upspin in Ising[u]:
+                    E[j] = math.inf
+                Ising[u] = upspin
+            if h in y_cord_old[j] and uph in y_cord[j]:
+                if downspin in Ising[u]:
+                    E[j] = math.inf
+                Ising[u] = downspin
             break
         elif DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
             E[j] = math.inf#energy set to infinite if particle runs into x boundaries
@@ -99,4 +115,6 @@ for i in range(0, n):
     densityhigh = type1high + type2high #number of particles in the higher compartment
     print("type1low=", type1low/arealow, "type2low=", type2low/arealow, "lowdensity=", densitylow/arealow, file= fileout)
     print("type1high=", type1high/areahigh, "type2high=", type2high/areahigh, "highdensity=", densityhigh/areahigh, file= fileout)
-fileout.close()   
+    for u in range(0, len(Trans)):
+        print(Ising[u], file= fileout)
+fileout.close() 
