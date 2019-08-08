@@ -3,22 +3,23 @@ import matplotlib
 import pylab
 import random
 import math
-n=500000#number of timesteps taken
-k=40 #number of "type 1" particles spawning in area one
+n=1000#number of timesteps taken
+k=2 #number of "type 1" particles spawning in area one
 c=0 #number of "type 2" particles spawning in area one
 g=0 #number of "type 1" particles spawning in area 2
-f=40 #number of "type 2" particles spawning in area 2
+f=2 #number of "type 2" particles spawning in area 2
 Reject_Type_One = range(0, k) or range(k + c, k + c + g)
 Reject_Type_Two = range(k, k + c) or range(k + c + g, k + c + g + f)
-a=-1#lower bound for x and x-randomization
-b=11#upper bound for x and x-randomization
-h=10#separates areas into area one and area two, and sets y inter-area boundrary
+a=9#lower bound for x and x-randomization
+b=13#upper bound for x and x-randomization
+h=7#separates areas into area one and area two, and sets y inter-area boundrary
 uph=h+1
-y=-1#lower bound for y and y-randomization
-z=21#upper bound for y and y randomization
+y=5#lower bound for y and y-randomization
+z=10#upper bound for y and y randomization
 Trans=()#x-coords on the cell membrane which act as holes
-Special_Trans1=((9), (11))
-Special_Trans2=((10), (12))
+Special_Trans1=((9), (11))#sets part of transporter which rejects type one particles
+Special_Trans2=((10), (12))#sets part of transporter which rejects type two particles
+#in order for this to work, they must have the same number of entries
 T=1#thermal energy test value
 DC1 = ([a], [b])#sets upper and lower boundaries at x=1  and x=10
 DC3 = ([y], [h], [uph], [z])#sets upper and lower y boundaries and the cell membrane level
@@ -30,20 +31,21 @@ A1 = numpy.concatenate((A1x, A1y), axis= 1)#matrix of positions of area one
 A2x = numpy.random.randint(low=a + 1, high=b, size =((g + f), 1))#randomization for area two x-bound
 A2y = numpy.random.randint(low=uph + 1, high=z, size =((g + f), 1))#randomization for area two y-bound
 A2 = numpy.concatenate((A2x, A2y), axis= 1)#matrix of positions of area two
-P = numpy.concatenate((A1, A2), axis= 0)
+P = numpy.concatenate((A1, A2), axis= 0)#sets matrix of positions, with particles spawning in area two being below those spawning in area one
 x = numpy.hsplit(P, 2)
-x_cord = x[0]
-y_cord = x[1]
-E_young = 0
+x_cord = x[0]#sets matrix of all x coordinates of all particles
+y_cord = x[1]#sets matrix of all y coordinates of all particles
+E_young = 0#default energy for zero particles in a transporter
 arealow = ((b - 1) - (a + 1)) * ((h) - (y + 1))#calculates the total area of the lower compartment
 areahigh = ((b - 1) - (a + 1)) * ((z - 1) - (h))#calculates the total area of the higher compartment
-Ising = numpy.zeros((len(Trans), 2))
-Idontsing = numpy.zeros((len(Special_Trans1), 2))
-Transrand = len(Special_Trans1)
+Ising = numpy.zeros((len(Trans), 2))#matrix of spins for transporters acting as protein channels
+Idontsing = numpy.zeros((len(Special_Trans1), 2))#matrix of spins for transporters acting as coupled symporters/antiporters
+Transrand = len(Special_Trans1)#sets number of transporters acting as such
 E = numpy.zeros((2 * Transrand) + k + c + g + f)#default energy for now, may change to a equation and move placement of it
 #creates a energy for each particle for each position
+o = 0
 for u in range(0, len(Trans)):
-    Ising[u] = numpy.zeros((1, 2))
+    Ising[u] = numpy.zeros((1, 2))#sets the initial spin of each individual protein channel
 upspin = numpy.ones(2)
 downspin = -1 * numpy.ones(2)
 upone = numpy.ones(1)
@@ -54,9 +56,6 @@ Special = (Special_Trans1, Special_Trans2)
 Sppecial = numpy.zeros((len(Special_Trans1), 2))
 for u in range(0, len(Special_Trans1)):
     Sppecial[u] = [item[u] for item in Special]
-for u in range(0, 2):
-    Sppecial[u] = [item[u] for item in Special]
-print(Sppecial[1])
 for u in range(0, len(Special_Trans1)):
     Idontsing[u] = uponedownone
 KbT=1
@@ -64,7 +63,10 @@ epsilion=1
 negepsilion=-1
 partcount=1
 def func1():
-    if Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
+    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
+        E[j] = math.inf#energy set to infinite if particle runs into x boundaries
+        print("bound", E[j], P[j])
+    elif Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
         u = Trans.index(x_cord[j])
         if uph in y_cord_old[j] and h in y_cord[j]:
             if upspin in Ising[u]: #rejects particles heading "down" if the transporter is receiving particles moving up
@@ -133,16 +135,12 @@ def func1():
                 print("rejected=", P[j], j)
             elif numpy.array_equal(upone, funandgames[0]):
                 E[j] = negepsilion
-                print("transporter closed")
                 print("rejected=", P[j], j)
             elif numpy.array_equal(downone, funandgames[0]):
                 E[j] = 0
                 print("glitch", funandgames[0], funandgames[1])
             else:
                 E[j] = 0 
-    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
-        E[j] = math.inf#energy set to infinite if particle runs into x boundaries
-        print("bound", E[j], P[j])
     elif DC3 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
         E[j] = math.inf#energy set to infinite if particle runs into y boundaries and membrane
         print("bound", E[j], P[j])
@@ -201,12 +199,15 @@ for i in range(0, n):
                 #o = 1 #this may or may not be a feature incorporated in the future
                 E[j] = math.inf#energy set to infinite if they collide
                 o = 1
+                print("particle collision")
                 break #if the particle moves into the same position as another particle, it's energy is infinite and the loop stops there
             else:
                 o = 0
     if j in range(0, (k + c + g + f)):
         if o == 0:
             func1()
+        else:
+            E[j] = math.inf
     elif j in range((k + c + g + f), (Transrand + k + c + g + f)):
         print("yay")
         u = j - (k + c + g + f)       
