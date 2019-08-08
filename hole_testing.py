@@ -209,8 +209,9 @@ for i in range(0, n):
                 break #if the particle moves into the same position as another particle, it's energy is infinite and the loop stops there
             else:
                 o = 0
-    if j in range(0, (k + c + g + f)) and o == 0:
-        func1()
+    if j in range(0, (k + c + g + f)): 
+        if o == 0:
+            func1()
     elif j in range((k + c + g + f), (Transrand + k + c + g + f)):
         print("yay")
         u = j - (k + c + g + f)       
