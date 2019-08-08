@@ -22,7 +22,7 @@ Special_Trans2=((10), (12))
 T=1#thermal energy test value
 DC1 = ([a], [b])#sets upper and lower boundaries at x=1  and x=10
 DC3 = ([y], [h], [uph], [z])#sets upper and lower y boundaries and the cell membrane level
-DC4 = ([h], [uph])
+DC4 = ([h], [uph])#sets cell membrane boundaries
 M = numpy.array([(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(1,-1),(1,0),(0,1),(1,1)])
 A1x = numpy.random.randint(low=a + 1, high=b, size =((k + c), 1))#randomization for area one x-bound
 A1y = numpy.random.randint(low=y + 1, high=h, size =((k + c), 1))#randomization for area one y-bound
@@ -30,7 +30,7 @@ A1 = numpy.concatenate((A1x, A1y), axis= 1)#matrix of positions of area one
 A2x = numpy.random.randint(low=a + 1, high=b, size =((g + f), 1))#randomization for area two x-bound
 A2y = numpy.random.randint(low=uph + 1, high=z, size =((g + f), 1))#randomization for area two y-bound
 A2 = numpy.concatenate((A2x, A2y), axis= 1)#matrix of positions of area two
-P = numpy.concatenate((A1, A2), axis= 0)
+P = numpy.concatenate((A1, A2), axis= 0)#sets matrix of positions, with particles spawning in area two being below those spawning in area one
 x = numpy.hsplit(P, 2)
 x_cord = x[0]
 y_cord = x[1]
@@ -59,9 +59,6 @@ type2lows = numpy.zeros(n)
 lol = numpy.arange(n)
 for u in range(0, len(Special_Trans1)):
     Sppecial[u] = [item[u] for item in Special]
-for u in range(0, 2):
-    Sppecial[u] = [item[u] for item in Special]
-print(Sppecial[1])
 for u in range(0, len(Special_Trans1)):
     Idontsing[u] = uponedownone
 KbT=1
@@ -69,7 +66,10 @@ epsilion=1
 negepsilion=-1
 partcount=1
 def func1():
-    if Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
+    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
+        E[j] = math.inf#energy set to infinite if particle runs into x boundaries
+        print("bound", E[j], P[j])
+    elif Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
         u = Trans.index(x_cord[j])
         if uph in y_cord_old[j] and h in y_cord[j]:
             if upspin in Ising[u]: #rejects particles heading "down" if the transporter is receiving particles moving up
@@ -145,9 +145,6 @@ def func1():
                 print("glitch", funandgames[0], funandgames[1])
             else:
                 E[j] = 0 
-    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
-        E[j] = math.inf#energy set to infinite if particle runs into x boundaries
-        print("bound", E[j], P[j])
     elif DC3 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
         E[j] = math.inf#energy set to infinite if particle runs into y boundaries and membrane
         print("bound", E[j], P[j])
@@ -211,7 +208,9 @@ for i in range(0, n):
                 o = 0
     if j in range(0, (k + c + g + f)): 
         if o == 0:
-            func1()
+            func1()        
+        else:
+            E[j] = math.inf
     elif j in range((k + c + g + f), (Transrand + k + c + g + f)):
         print("yay")
         u = j - (k + c + g + f)       
