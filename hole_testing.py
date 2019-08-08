@@ -145,7 +145,7 @@ def func1():
                 print("glitch", funandgames[0], funandgames[1])
             else:
                 E[j] = 0 
-    elif DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
+    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
         E[j] = math.inf#energy set to infinite if particle runs into x boundaries
         print("bound", E[j], P[j])
     elif DC3 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
