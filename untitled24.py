@@ -58,19 +58,20 @@ for u in range(0, len(Special_Trans1)):
     Sppecial[u] = [item[u] for item in Special]
 for u in range(0, len(Special_Trans1)):
     Idontsing[u] = uponedownone
+#sets starting transporter positions to be "open"
 KbT=1
 epsilion=1
 negepsilion=-1
 partcount=1
 def func1():
-    if DC1 in x_cord[j]:#this specifically will need MAJOR adjustements if we loop all instead of randomly select 
+    if DC1 in x_cord[j]:#keeps particles from leaving the system's boundaries
         E[j] = math.inf#energy set to infinite if particle runs into x boundaries
         print("bound", E[j], P[j])
     elif Trans in x_cord[j] and DC4 in y_cord[j]:#tells us if particle is on a transporter
         u = Trans.index(x_cord[j])
         if uph in y_cord_old[j] and h in y_cord[j]:
             if upspin in Ising[u]: #rejects particles heading "down" if the transporter is receiving particles moving up
-                E[j] = math.inf
+                E[j] = math.inf#keeps particles out if protein channel is closed
                 print("transporter closed")
                 print("rejected=", P[j], j)
             Ising[u] = upspin #sets transporter to "up" if this is the first particle to pass through
@@ -85,11 +86,11 @@ def func1():
         funandgames = numpy.split(Idontsing[u], 2)#sets up so that we can alter the specific transporter end
         if h in y_cord[j]:
             if j in Reject_Type_One:
-                E[j] = math.inf
+                E[j] = math.inf#rejects type one particles from entering the special transporters from this way
                 print("type one rejected")
                 print("rejected=", P[j], j)
             elif numpy.array_equal(upone, funandgames[1]):
-                E[j] = negepsilion
+                E[j] = negepsilion#if the spin is up, the particle has a negative energy
                 print("transporter closed")
                 print("rejected=", P[j], j)
             elif numpy.array_equal(downone, funandgames[1]):
@@ -116,7 +117,7 @@ def func1():
         funandgames = numpy.split(Idontsing[u], 2)
         if h in y_cord[j]:
             if j in Reject_Type_Two:
-                E[j] = math.inf
+                E[j] = math.inf#rejects type two particles
                 print("type two rejected")
                 print("rejected=", P[j], j)
             elif numpy.array_equal(upone, funandgames[1]):
@@ -145,8 +146,8 @@ def func1():
         E[j] = math.inf#energy set to infinite if particle runs into y boundaries and membrane
         print("bound", E[j], P[j])
     else:
-        E[j] = 0
-def func2():
+        E[j] = 0#default energy is 0
+def func2():#sets energy of transporter(for the end of transporter that rejects type one) when it is randomized
     u = j - (k + c + g + f)
     funandgames = numpy.hsplit(Idontsing[u], 2)
     for u in range(0, len(Special_Trans1)):
@@ -160,7 +161,7 @@ def func2():
                 E[j] = 0
             if funandgames[1] in downone:
                 E[j] = epsilion
-def func3():
+def func3():#sets energy of transporter(for the end of transporter that rejects type two) when it is randomized
     u = j - (Transrand + k + c + g + f)
     funandgames = numpy.hsplit(Idontsing[u], 2)
     for u in range(0, len(Special_Trans1)):
@@ -178,11 +179,11 @@ fileout = open ("coordinatesold.txt", "a")
 print(P)
 for i in range(0, n):
     E_young = 0
-    type1low = 0
+    type1low = 0#counts what particles of what types are in what area
     type1high = 0
     type2low = 0
     type2high = 0
-    y_cord_old = x[1].copy()
+    y_cord_old = x[1].copy()#saves old y-coordinate, may not be neccessary anymore
     j = random.randint(0, ((2 * Transrand) + k + c + g + f) - 1)#this picks which particle moves
     E_old = E.copy() #saves old energy in case the new move is rejected
     Ej_old = E[j].copy()
@@ -205,20 +206,20 @@ for i in range(0, n):
                 o = 0
     if j in range(0, (k + c + g + f)):
         if o == 0:
-            func1()
+            func1()#particle only checks if it runs into boundaries if it doesn't run into another particle
         else:
-            E[j] = math.inf
+            E[j] = math.inf#if it ran into another particle, then it's rejected
     elif j in range((k + c + g + f), (Transrand + k + c + g + f)):
         print("yay")
-        u = j - (k + c + g + f)       
+        u = j - (k + c + g + f)#j=4 and j=5 are on two separate transporters that reject type one particles
         funandgames = numpy.hsplit(Idontsing[u], 2)
-        if funandgames[0] in upone:
+        if funandgames[0] in upone:#sets energy of a change in transporter state
             print("cool", u, j)
-            funandgames[0] = downone
+            funandgames[0] = downone#changes transporter's state
             if funandgames[1] in downone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == uph and x_cord[j] in Sppecial[u]:
-                        E[j] = E_young + partcount
+                        E[j] = E_young + partcount#accounts for change in particle energy within transporter when it's changing
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
             elif funandgames[1] in upone:
@@ -251,7 +252,7 @@ for i in range(0, n):
             func2()
         for j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):
             func3()
-    elif j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):
+    elif j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):#same as above for the other end of the transporter (yes, this is neccessary)
         print("yay")
         u = j - (Transrand + k + c + g + f)
         funandgames = numpy.hsplit(Idontsing[u], 2)
@@ -294,12 +295,13 @@ for i in range(0, n):
             func2()
         for j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):
             func3()
+        #these three functions calculate the energy of all particles and transporters after a transporter shift occurs 
     print("norm", i, P, E, Idontsing)
     if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
         val = numpy.random.uniform(low=0, high=1, size=1)
         if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
             #T represents thermal energy, unsure how we want that represented(Kb * T)
-            if j in range(0, (k + c + g + f)):
+            if j in range(0, (k + c + g + f)): #resets to old state if the move is rejected
                 P[j] = P_old
                 E = E_old
                 Idontsing = I_old
@@ -339,4 +341,4 @@ fileout.close()
 fileout = open ("p.txt", "w")
 for j in range(0, (k + c + g +f)):
     print(*P[j], file= fileout)
-fileout.close()
+fileout.close()#creates a new file from which a simulation can be continued
