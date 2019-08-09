@@ -306,22 +306,23 @@ for i in range(0, n):
         for j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):
             func3()
     print("norm", i, P, E, Idontsing)
-    if j in range(0, (k + c + g + f)):
-        if E[j] > Ej_old :#if the energy's lower or equal we automatically accept it
+    if j in range(0, (k + c + g + f)): #resets to old state if the move is rejected
+        if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
             val = numpy.random.uniform(low=0, high=1, size=1)
             if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
                 #T represents thermal energy, unsure how we want that represented(Kb * T)
                 P[j] = P_old
                 E = E_old
                 Idontsing = I_old
-                print("get rekt", i, P, E[j], Idontsing)
     if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
-        if cool > Ej_old :#if the energy's lower or equal we automatically accept it
+        if cool > Ej_old:
             val = numpy.random.uniform(low=0, high=1, size=1)
-            if val > (math.exp((cool - E[j])/(KbT))):
+            if val > (math.exp((Ej_old - cool)/(KbT))):#equation will need to be changed later(rn inaccurate)
+                print("fat=", cool)
+                print(Ej_old - cool)
                 E = E_old
                 Idontsing = I_old
-                print("get rekt", i, P, E[j], Idontsing)
+            print("get rekt", i, P, E[j], Idontsing)
     for q in range(0, (k + c + g + f)): #prints out each particle into the output file
         print(*P[q], end = " ", file= fileout)
         if q == ((k + c + g + f) - 1): #checks if we're at the last particle
