@@ -3,11 +3,11 @@ import matplotlib
 import pylab
 import random
 import math
-n=500000#number of timesteps taken
-k=40 #number of "type 1" particles spawning in area one
+n=1000#number of timesteps taken
+k=2 #number of "type 1" particles spawning in area one
 c=0 #number of "type 2" particles spawning in area one
 g=0 #number of "type 1" particles spawning in area 2
-f=40 #number of "type 2" particles spawning in area 2
+f=2 #number of "type 2" particles spawning in area 2
 Reject_Type_One = range(0, k) or range(k + c, k + c + g)
 Reject_Type_Two = range(k, k + c) or range(k + c + g, k + c + g + f)
 a=-1#lower bound for x and x-randomization
@@ -224,12 +224,14 @@ for i in range(0, n):
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
             elif funandgames[1] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == uph and x_cord[j] in Sppecial[u]:
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
         elif funandgames[0] in downone:
             print("cool", u, j)
             funandgames[0] = upone
@@ -239,12 +241,14 @@ for i in range(0, n):
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
             elif funandgames[1] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == uph and x_cord[j] in Sppecial[u]:
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
         print("E[j]=", E[j])
         Idontsing[u] = numpy.concatenate((funandgames[0], funandgames[1]), axis= None)
         print("lol", i, j, P, Idontsing)
@@ -267,12 +271,14 @@ for i in range(0, n):
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
             elif funandgames[0] in downone:      
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == h and x_cord[j] in Sppecial[u]:
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
         elif funandgames[1] in downone:
             print("cool", u, j) 
             funandgames[1] = upone
@@ -282,12 +288,14 @@ for i in range(0, n):
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
             elif funandgames[0] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == h and x_cord[j] in Sppecial[u]:
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
         print("E[j]=", E[j])
         Idontsing[u] = numpy.concatenate((funandgames[0], funandgames[1]), axis= None)
         print("lol", i, j, P, Idontsing)
@@ -298,18 +306,22 @@ for i in range(0, n):
         for j in range((Transrand + k + c + g + f), ((2 * Transrand) + k + c + g + f)):
             func3()
     print("norm", i, P, E, Idontsing)
-    if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
-        val = numpy.random.uniform(low=0, high=1, size=1)
-        if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
-            #T represents thermal energy, unsure how we want that represented(Kb * T)
-            if j in range(0, (k + c + g + f)):
+    if j in range(0, (k + c + g + f)):
+        if E[j] > Ej_old :#if the energy's lower or equal we automatically accept it
+            val = numpy.random.uniform(low=0, high=1, size=1)
+            if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
+                #T represents thermal energy, unsure how we want that represented(Kb * T)
                 P[j] = P_old
                 E = E_old
                 Idontsing = I_old
-            if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
+                print("get rekt", i, P, E[j], Idontsing)
+    if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
+        if cool > Ej_old :#if the energy's lower or equal we automatically accept it
+            val = numpy.random.uniform(low=0, high=1, size=1)
+            if val > (math.exp((cool - E[j])/(KbT))):
                 E = E_old
                 Idontsing = I_old
-            print("get rekt", i, P, E[j], Idontsing)
+                print("get rekt", i, P, E[j], Idontsing)
     for q in range(0, (k + c + g + f)): #prints out each particle into the output file
         print(*P[q], end = " ", file= fileout)
         if q == ((k + c + g + f) - 1): #checks if we're at the last particle
