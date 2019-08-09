@@ -305,16 +305,20 @@ for i in range(0, n):
             func3()
         #these three functions calculate the energy of all particles and transporters after a transporter shift occurs 
     print("norm", i, P, E, Idontsing)
-    if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
-        val = numpy.random.uniform(low=0, high=1, size=1)
-        if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
-            #T represents thermal energy, unsure how we want that represented(Kb * T)
-            if j in range(0, (k + c + g + f)): #resets to old state if the move is rejected
+    if j in range(0, (k + c + g + f)): #resets to old state if the move is rejected
+        if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
+            val = numpy.random.uniform(low=0, high=1, size=1)
+            if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
+                #T represents thermal energy, unsure how we want that represented(Kb * T)
                 P[j] = P_old
                 E = E_old
                 Idontsing = I_old
-            if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
+    if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
+        if cool > Ej_old:
+            val = numpy.random.uniform(low=0, high=1, size=1)
+            if val > (math.exp((Ej_old - cool)/(KbT))):#equation will need to be changed later(rn inaccurate)
                 print("fat=", cool)
+                print(Ej_old - cool)
                 E = E_old
                 Idontsing = I_old
             print("get rekt", i, P, E[j], Idontsing)
