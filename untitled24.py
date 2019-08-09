@@ -222,12 +222,14 @@ for i in range(0, n):
                         E[j] = E_young + partcount#accounts for change in particle energy within transporter when it's changing
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
             elif funandgames[1] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == uph and x_cord[j] in Sppecial[u]:
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
         elif funandgames[0] in downone:
             print("cool", u, j)
             funandgames[0] = upone
@@ -237,12 +239,14 @@ for i in range(0, n):
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
             elif funandgames[1] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == uph and x_cord[j] in Sppecial[u]:
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
         print("E[j]=", E[j])
         Idontsing[u] = numpy.concatenate((funandgames[0], funandgames[1]), axis= None)
         print("lol", i, j, P, Idontsing)
@@ -265,12 +269,14 @@ for i in range(0, n):
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
             elif funandgames[0] in downone:      
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == h and x_cord[j] in Sppecial[u]:
                         E[j] = E_young + partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
         elif funandgames[1] in downone:
             print("cool", u, j) 
             funandgames[1] = upone
@@ -280,12 +286,14 @@ for i in range(0, n):
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = epsilion + E_young
+                cool = E[j].copy()
             elif funandgames[0] in upone:
                 for j in range(0, (k + c + g + f)):
                     if y_cord[j] == h and x_cord[j] in Sppecial[u]:
                         E[j] = E_young - partcount
                         E_young = E[j].copy()
                 E[j] = negepsilion + E_young
+                cool = E[j].copy()
         print("E[j]=", E[j])
         Idontsing[u] = numpy.concatenate((funandgames[0], funandgames[1]), axis= None)
         print("lol", i, j, P, Idontsing)
@@ -306,6 +314,7 @@ for i in range(0, n):
                 E = E_old
                 Idontsing = I_old
             if j in range((k + c + g + f), ((2 * Transrand) + (k + c + g + f))):
+                print("fat=", cool)
                 E = E_old
                 Idontsing = I_old
             print("get rekt", i, P, E[j], Idontsing)
