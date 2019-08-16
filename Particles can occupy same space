@@ -119,7 +119,7 @@ for i in range(0, n):
             if o[((y_cord[q] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
                 E[q] = negepsilion
             else:
-                E[j] = 0
+                E[q] = 0
         elif Special_Trans2 in x_cord[q] and DC4 in y_cord[q]:
             u = Special_Trans2.index(x_cord[q])
             if o[((y_cord[q] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
