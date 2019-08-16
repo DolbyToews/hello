@@ -4,7 +4,7 @@ from statistics import mean
 import pylab
 import random
 import math
-n=10000#number of timesteps taken
+n=50000#number of timesteps taken
 lol=numpy.arange(n)
 k=40 #number of "type 1" particles spawning in area one
 c=20 #number of "type 2" particles spawning in area one
@@ -64,7 +64,6 @@ for i in range(0, n):
     Ej_old = E[j].copy()#saves old individual energy for use in Monte Carlo rejection
     x_cord_old = x_cord[j].copy()#values saved to set old positions occupancy to 0 if needed
     y_cord_old = y_cord[j].copy()
-    o_old = o.copy()#saves old occupancy matrix
     P_old = P[j].copy() #saves old position in case the new move is rejected
     P[j] = P_old + random.choice(M) #the new move
     if DC1 in x_cord[j]:#keeps particles from leaving the system's boundaries
@@ -104,7 +103,6 @@ for i in range(0, n):
         if val > (math.exp((Ej_old - E[j])/(KbT))):#sets probability of particle being rejected
             E = E_old
             P[j] = P_old
-            o = o_old
         else:
             o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
     if E[j] <= Ej_old:
@@ -116,20 +114,20 @@ for i in range(0, n):
         else:
             o[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 0 
     for q in range(0, (k + c + g + f)):#this loop sets the energies of the other particles after a move
-        if Special_Trans1 in x_cord[j] and DC4 in y_cord[j]:
-            u = Special_Trans1.index(x_cord[j])
-            if o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
-                E[j] = negepsilion
+        if Special_Trans1 in x_cord[q] and DC4 in y_cord[q]:
+            u = Special_Trans1.index(x_cord[q])
+            if o[((y_cord[q] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
+                E[q] = negepsilion
             else:
                 E[j] = 0
-        elif Special_Trans2 in x_cord[j] and DC4 in y_cord[j]:
-            u = Special_Trans2.index(x_cord[j])
-            if o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
-                E[j] = negepsilion
+        elif Special_Trans2 in x_cord[q] and DC4 in y_cord[q]:
+            u = Special_Trans2.index(x_cord[q])
+            if o[((y_cord[q] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
+                E[q] = negepsilion
             else:
-                E[j] = 0
+                E[q] = 0
         else:
-            E[j] = 0
+            E[q] = 0
     for q in range(0, (k + c + g + f)): #prints out each particle into the output file
         print(*P[q], end = " ", file= fileout)
         if q == ((k + c + g + f) - 1): #checks if we're at the last particle
@@ -142,7 +140,7 @@ for i in range(0, n):
     type1 = numpy.concatenate((A1T1, A2T1), axis= 0) #aggregates all type one particles regardless of spawn
     type2 = numpy.concatenate((A1T2, A2T2), axis= 0) #aggregates all type two particles regardless of spawn
     for q in range(0, (k + g)): 
-        if type1[q] < h: #tells us how many type one particles are in area one
+        if type1[q] < uph: #tells us how many type one particles are in area one
             type1low = type1low + 1
         elif type1[q] > h:#tells us how many type one particles are in area two
             #maybe make it so that transporters aren't included in area two, not sure yet
