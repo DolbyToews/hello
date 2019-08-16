@@ -10,22 +10,22 @@ k=40 #number of "type 1" particles spawning in area one
 c=20 #number of "type 2" particles spawning in area one
 g=0 #number of "type 1" particles spawning in area 2
 f=20 #number of "type 2" particles spawning in area 2
-Reject_Type_One = range(0, k) or range(k + c, k + c + g)
+Reject_Type_One = range(0, k) or range(k + c, k + c + g)#currently unused, but might use later
 Reject_Type_Two = range(k, k + c) or range(k + c + g, k + c + g + f)
 a=-1#lower bound for x and x-randomization
 b=10#upper bound for x and x-randomization
-h=10#separates areas into area one and area two, and sets y inter-area boundrary
+h=10#separates areas into area one and area two, and sets bottom of inter-area boundrary
 uph=11#sets "top" of interarea boundary
-thing = []#remove when/if done pump testing
+thing = []#used to create a list calculate steady state mean
 y=0#lower bound for y and y-randomization
 z=21#upper bound for y and y randomization
-Special_Trans1=((1), (3))#sets part of transporter which rejects type one particles
-Special_Trans2=((2), (4))#sets part of transporter which rejects type two particles
-#in order for this to work, they must have the same number of entries
+Special_Trans1=((1), (3))#sets part of channel which rejects type one particles
+Special_Trans2=((2), (4))#sets part of channel which rejects type two particles
+#in order to have a accurate simulation, these should have the same number of entries
 DC1 = ([a], [b])#sets upper and lower boundaries at x=1  and x=10
 DC3 = ([y], [z])#sets upper and lower y boundaries and the cell membrane level
-DC4 = (numpy.arange(h, uph + 1))
-M = numpy.array([(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(1,-1),(1,0),(0,1),(1,1)])
+DC4 = (numpy.arange(h, uph + 1))#sets width of interarea boundary
+M = numpy.array([(-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (1,-1), (1,0), (0,1), (1,1)])#moves that a particle can do
 A1x = numpy.random.randint(low=a + 1, high=b, size =((k + c), 1))#randomization for area one x-bound
 A1y = numpy.random.randint(low=y + 1, high=h, size =((k + c), 1))#randomization for area one y-bound
 A1 = numpy.concatenate((A1x, A1y), axis= 1)#matrix of positions of area one
@@ -41,8 +41,8 @@ y_cord = x[1]#sets matrix of all y coordinates of all particles
 #areahigh = ((b - 1) - (a + 1)) * ((z - 1) - (h))#calculates the total area of the higher compartment
 E = numpy.zeros(k + c + g + f)#default energy for now, may change to a equation and move placement of it
 #creates a energy for each particle for each position
-o = numpy.zeros((((z - y) - 1), ((b - a) - 1)))
-for j in range(0, (k + c + g + f)):
+o = numpy.zeros((((z - y) - 1), ((b - a) - 1)))#occupancy matrix
+for j in range(0, (k + c + g + f)):#sets all starting positions to occupied
     o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
 KbT=1
 epsilion=1
@@ -60,74 +60,72 @@ for i in range(0, n):
     type2low = 0
     type2high = 0
     j = random.randint(0, (k + c + g + f) - 1)#this picks which particle moves
-    E_old = E.copy() #saves old energy in case the new move is rejected
-    Ej_old = E[j].copy()
-    x_cord_old = x_cord[j].copy()
+    E_old = E.copy() #saves old energy matrix in case the new move is rejected
+    Ej_old = E[j].copy()#saves old individual energy for use in Monte Carlo rejection
+    x_cord_old = x_cord[j].copy()#values saved to set old positions occupancy to 0 if needed
     y_cord_old = y_cord[j].copy()
-    o_old = o.copy()
+    o_old = o.copy()#saves old occupancy matrix
     P_old = P[j].copy() #saves old position in case the new move is rejected
-    P[j] = P[j] + random.choice(M) #the new move
+    P[j] = P_old + random.choice(M) #the new move
     if DC1 in x_cord[j]:#keeps particles from leaving the system's boundaries
         E[j] = math.inf#energy set to infinite if particle runs into x boundaries
-    elif Special_Trans1 in x_cord[j] and DC4 in y_cord[j]:#sets which"end" of transporter is altered
-        u = Special_Trans1.index(x_cord[j])#sets which transporter is altered
-        if j in range(0, k) or range(k + c, k + c + g):
-            E[j] = math.inf#rejects type one particles from entering the special transporters from this way
-        elif o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
-            E[j] = negepsilion
-        elif o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 0:
-            E[j] = 0
-        else:
-            E[j] = 0
-    elif Special_Trans2 in x_cord[j] and DC4 in y_cord[j]:
-        u = Special_Trans2.index(x_cord[j])
-        if j in range(k, k + c) or range(k + c + g, k + c + g + f):
-            E[j] = math.inf#rejects type two particles from entering the special transporters from this way
-        elif o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
-            E[j] = negepsilion
-        elif o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 0:
-            E[j] = 0
-        else:
-            E[j] = 0
-    elif DC3 or DC4 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
+    elif DC3 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
         E[j] = math.inf#energy set to infinite if particle runs into y boundaries and membrane
+    elif DC4 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
+        if Special_Trans1 in x_cord[j]:#sets which"end" of transporter is altered
+            u = Special_Trans1.index(x_cord[j])#sets which transporter is altered
+            if j in range(0, (k)):
+                E[j] = math.inf#rejects type one particles from entering the special transporters from this way
+            elif range((k + c), (k + c + g)):
+                E[j] = math.inf
+            elif o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
+                E[j] = negepsilion#sets energy for particle interaction within channel
+            else:
+                E[j] = 0
+        elif Special_Trans2 in x_cord[j]:
+            u = Special_Trans2.index(x_cord[j])
+            if j in range(k, (k + c)):
+                E[j] = math.inf#rejects type two particles from entering the special transporters from this way
+            elif j in range((k + c + g), (k + c + g + f)):#these need to be separate for some reason. Talk to August about it
+                E[j] = math.inf#rejects type two particles from entering the special transporters from this way
+            elif o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
+                E[j] = negepsilion
+            else:
+                E[j] = 0
+        else:
+            E[j] = math.inf
     else:
         E[j] = 0#default energy is 0
+    if j in range(0, k) or range((k + c), (k + c + g)):#this section sends the driver back to it's starting area if it crosses over
+        if (uph + 1) in y_cord[j]:
+            P[j] = alright[j]
     if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
         val = numpy.random.uniform(low=0, high=1, size=1)
-        if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
+        if val > (math.exp((Ej_old - E[j])/(KbT))):#sets probability of particle being rejected
             E = E_old
             P[j] = P_old
             o = o_old
         else:
             o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
     if E[j] <= Ej_old:
-        o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
-    for q in range(0, (k + c + g + f)):
+        o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1#if the move is accepted the new position of the particle is occupied
+    for q in range(0, (k + c + g + f)):#the old position of the particle may still be occupied, this checks if it is
         if numpy.array_equal(P[q], P_old):
             o[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 1
             break
         else:
             o[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 0 
-    for q in range(0, (k + c + g + f)):
-        if Special_Trans1 in x_cord[j] and DC4 in y_cord[j]:#sets which"end" of transporter is altered
-            u = Special_Trans1.index(x_cord[j])#sets which transporter is altered
-            if j in Reject_Type_One:
-                E[j] = math.inf#rejects type one particles from entering the special transporters from this way
-            elif o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
+    for q in range(0, (k + c + g + f)):#this loop sets the energies of the other particles after a move
+        if Special_Trans1 in x_cord[j] and DC4 in y_cord[j]:
+            u = Special_Trans1.index(x_cord[j])
+            if o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 1:
                 E[j] = negepsilion
-            elif o[((y_cord[j] - (y + 1)), (Special_Trans2[u] - (a + 1)))] == 0:
-                E[j] = 0
             else:
                 E[j] = 0
         elif Special_Trans2 in x_cord[j] and DC4 in y_cord[j]:
             u = Special_Trans2.index(x_cord[j])
-            if j in Reject_Type_Two:
-                E[j] = math.inf#rejects type two particles from entering the special transporters from this way
-            elif o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
+            if o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 1:
                 E[j] = negepsilion
-            elif o[((y_cord[j] - (y + 1)), (Special_Trans1[u] - (a + 1)))] == 0:
-                E[j] = 0
             else:
                 E[j] = 0
         else:
@@ -144,15 +142,15 @@ for i in range(0, n):
     type1 = numpy.concatenate((A1T1, A2T1), axis= 0) #aggregates all type one particles regardless of spawn
     type2 = numpy.concatenate((A1T2, A2T2), axis= 0) #aggregates all type two particles regardless of spawn
     for q in range(0, (k + g)): 
-        if type1[q] < uph: #tells us how many type one particles are in area one
+        if type1[q] < h: #tells us how many type one particles are in area one
             type1low = type1low + 1
-        elif type1[q] >= uph:#tells us how many type one particles are in area two
+        elif type1[q] > h:#tells us how many type one particles are in area two
             #maybe make it so that transporters aren't included in area two, not sure yet
             type1high = type1high + 1
     for q in range(0, (c + f)):
         if type2[q] < uph:#tells us how many type two particles are in area one
             type2low = type2low + 1
-        elif type2[q] >= uph: #tells us how many type two particles are in area two
+        elif type2[q] > h: #tells us how many type two particles are in area two
             type2high = type2high + 1
     #densitylow = type1low + type2low #number of particles in the lower compartment
     #densityhigh = type1high + type2high #number of particles in the higher compartment
