@@ -4,7 +4,7 @@ from statistics import mean
 import pylab
 import random
 import math
-n=50000#number of timesteps taken
+n=100000#number of timesteps taken
 lol=numpy.arange(n)
 k=40 #number of "type 1" particles spawning in area one
 c=20 #number of "type 2" particles spawning in area one
@@ -41,7 +41,7 @@ y_cord = x[1]#sets matrix of all y coordinates of all particles
 #areahigh = ((b - 1) - (a + 1)) * ((z - 1) - (h))#calculates the total area of the higher compartment
 E = numpy.zeros(k + c + g + f)#default energy for now, may change to a equation and move placement of it
 #creates a energy for each particle for each position
-o = numpy.zeros((((z - y) - 1), ((b - a) - 1)))#occupancy matrix
+o = numpy.zeros((((z - y)), ((b - a))))#occupancy matrix
 for j in range(0, (k + c + g + f)):#sets all starting positions to occupied
     o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
 KbT=1
@@ -103,10 +103,7 @@ for i in range(0, n):
         if val > (math.exp((Ej_old - E[j])/(KbT))):#sets probability of particle being rejected
             E = E_old
             P[j] = P_old
-        else:
-            o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
-    if E[j] <= Ej_old:
-        o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1#if the move is accepted the new position of the particle is occupied
+    o[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
     for q in range(0, (k + c + g + f)):#the old position of the particle may still be occupied, this checks if it is
         if numpy.array_equal(P[q], P_old):
             o[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 1
