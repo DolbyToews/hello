@@ -1,0 +1,195 @@
+import numpy
+import matplotlib
+from statistics import mean
+import pylab
+import random
+import math
+n=500000#number of timesteps taken
+lol=numpy.arange(n)
+k=1 #number of "type 1" particles spawning in area one
+g=0 #number of "type 1" particles spawning in area 2
+c=1 #number of "type 2" particles spawning in area one
+f=0#number of "type 2" particles spawning in area 2
+Reject_Type_One = range(0, (k + g))#currently unused, but might use later
+Reject_Type_Two = range((k + g), (k + g + c + f))
+a=-1#lower bound for x and x-randomization
+b=10#upper bound for x and x-randomization
+h=10#separates areas into area one and area two, and sets bottom of inter-area boundrary
+uph=11#sets "top" of interarea boundary
+thing = []#used to create a list calculate steady state mean
+y=0#lower bound for y and y-randomization
+z=21#upper bound for y and y randomization
+Special_Trans1=((1), (3))#sets part of channel which rejects type one particles
+Special_Trans2=((2), (4))#sets part of channel which rejects type two particles
+#in order to have a accurate simulation, these should have the same number of entries
+DC1 = ([a], [b])#sets upper and lower boundaries at x=1  and x=10
+DC3 = ([y], [z])#sets upper and lower y boundaries and the cell membrane level
+DC4 = (numpy.arange(h, uph + 1))#sets width of interarea boundary
+M = numpy.array([(-1,-1), (-1,0), (-1,1), (0,-1), (0,0), (1,-1), (1,0), (0,1), (1,1)])#moves that a particle can do
+A1T1x = numpy.random.randint(low=a + 1, high=b, size =((k), 1))#randomization for area one x-bound
+A1T1y = numpy.random.randint(low=y + 1, high=h, size =((k), 1))#randomization for area one y-bound
+A1T1 = numpy.concatenate((A1T1x, A1T1y), axis= 1)#matrix of positions of area one
+A2T1x = numpy.random.randint(low=a + 1, high=b, size =((g), 1))#randomization for area two x-bound
+A2T1y = numpy.random.randint(low=uph + 1, high=z, size =((g), 1))#randomization for area two y-bound
+A2T1 = numpy.concatenate((A2T1x, A2T1y), axis= 1)#matrix of positions of area two
+A1T2x = numpy.random.randint(low=a + 1, high=b, size =((c), 1))#randomization for area one x-bound
+A1T2y = numpy.random.randint(low=y + 1, high=h, size =((c), 1))#randomization for area one y-bound
+A1T2 = numpy.concatenate((A1T2x, A1T2y), axis= 1)#matrix of positions of area one
+A2T2x = numpy.random.randint(low=a + 1, high=b, size =((f), 1))#randomization for area two x-bound
+A2T2y = numpy.random.randint(low=uph + 1, high=z, size =((f), 1))#randomization for area two y-bound
+A2T2 = numpy.concatenate((A2T2x, A2T2y), axis= 1)#matrix of positions of area two
+P = numpy.concatenate((A1T1, A2T1, A1T2, A2T2), axis= 0)#sets matrix of positions, with particles spawning in area two being below those spawning in area one
+x = numpy.hsplit(P, 2)
+alright = P.copy()
+x_cord = x[0]#sets matrix of all x coordinates of all particles
+y_cord = x[1]#sets matrix of all y coordinates of all particles
+#arealow = ((b - 1) - (a + 1)) * ((h) - (y + 1))#calculates the total area of the lower compartment
+#areahigh = ((b - 1) - (a + 1)) * ((z - 1) - (h))#calculates the total area of the higher compartment
+E = numpy.zeros(k + c + g + f)#default energy for now, may change to a equation and move placement of it
+#creates a energy for each particle for each position
+o1 = numpy.zeros((((z - y)), ((b - a))))#occupancy matrix
+for j in range(0, (k + g)):#sets all starting positions to occupied
+    o1[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1    
+o2 = numpy.zeros((((z - y)), ((b - a))))#occupancy matrix
+for j in range((k + g), (k + g + c + f)):#sets all starting positions to occupied
+    o2[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
+Type1_Matrix = [[o1[(((y_cord[j] - (y + 1) - 1)), ((x_cord[j] - (a + 1)) - 1))]], [o1[(((y_cord[j] - (y + 1)) - 1), (x_cord[j] - (a + 1)))]], [o1[(((y_cord[j] - (y + 1)) - 1), ((x_cord[j] - (a + 1)) + 1))]], [o1[((y_cord[j] - (y + 1)), ((x_cord[j] - (a + 1)) - 1))]], [o1[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))]], [o1[((y_cord[j] - (y + 1)), ((x_cord[j] - (a + 1)) + 1))]], [o1[(((y_cord[j] - (y + 1)) + 1), ((x_cord[j] - (a + 1)) - 1))]], [o1[(((y_cord[j] - (y + 1)) + 1), (x_cord[j] - (a + 1)))]], [o1[(((y_cord[j] - (y + 1)) + 1), ((x_cord[j] - (a + 1)) + 1))]]]
+Type2_Matrix = [[o2[(((y_cord[j] - (y + 1) - 1)), ((x_cord[j] - (a + 1)) - 1))]], [o2[(((y_cord[j] - (y + 1)) - 1), (x_cord[j] - (a + 1)))]], [o2[(((y_cord[j] - (y + 1)) - 1), ((x_cord[j] - (a + 1)) + 1))]], [o2[((y_cord[j] - (y + 1)), ((x_cord[j] - (a + 1)) - 1))]], [o2[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))]], [o2[((y_cord[j] - (y + 1)), ((x_cord[j] - (a + 1)) + 1))]], [o2[(((y_cord[j] - (y + 1)) + 1), ((x_cord[j] - (a + 1)) - 1))]], [o2[(((y_cord[j] - (y + 1)) + 1), (x_cord[j] - (a + 1)))]], [o2[(((y_cord[j] - (y + 1)) + 1), ((x_cord[j] - (a + 1)) + 1))]]]
+KbT=1
+epsilion=1
+negepsilion=-1
+one=1
+type1lows = numpy.zeros(n)#counts what particles of what types are in what area
+type1highs = numpy.zeros(n)
+type2lows = numpy.zeros(n)
+type2highs = numpy.zeros(n)
+fileout = open ("coordinatesold.txt", "w")
+print(P)
+def Particle_Energy():
+    if q in range(0, (k + g)):
+        print(Type2_Matrix)
+        if any(Type2_Matrix) is True:
+            E[q] = negepsilion
+            print(i, "yes", E[q], q)
+        else:
+            E[q] = 0
+            print(i, "no", E[q], q)
+    elif q in range((k + g), (k + g + c + f)):
+        print(Type1_Matrix)
+        if any(Type1_Matrix) is True:
+            E[q] = negepsilion
+            print(i, "yes", E[q], q)
+        else:
+            E[q] = 0
+            print(i, "no", E[q], q)
+for i in range(0, n):
+    print(i)
+    type1low = 0
+    type1high = 0
+    type2low = 0
+    type2high = 0
+    j = random.randint(0, (k + c + g + f) - 1)#this picks which particle moves
+    E_old = E.copy() #saves old energy matrix in case the new move is rejected
+    Ej_old = E[j].copy()#saves old individual energy for use in Monte Carlo rejection
+    x_cord_old = x_cord[j].copy()#values saved to set old positions occupancy to 0 if needed
+    y_cord_old = y_cord[j].copy()
+    P_old = P[j].copy() #saves old position in case the new move is rejected
+    P[j] = P_old + random.choice(M) #the new move
+    if DC1 in x_cord[j]:#keeps particles from leaving the system's boundaries
+        E[j] = math.inf#energy set to infinite if particle runs into x boundaries
+    elif DC3 in y_cord[j]:#this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
+        E[j] = math.inf#energy set to infinite if particle runs into y boundaries and membrane
+    elif DC4 in y_cord[j]:
+        if Special_Trans1 in x_cord[j]:#sets which"end" of transporter is altered
+            if j in range(0, (k + g)):
+                E[j] = math.inf#rejects type one particles from entering the special transporters from this way
+            else:
+                E[j] = 0
+        elif Special_Trans2 in x_cord[j]:
+            if j in range((k + g), (k + c + g + f)):
+                E[j] = math.inf#rejects type two particles from entering the special transporters from this way
+            else:
+                E[j] = 0
+        else:
+            E[j] = math.inf
+    else:
+        q = j
+        Particle_Energy
+    if j in range(0, (k + g)):#this section sends the driver back to it's starting area if it crosses over
+        if (uph + 1) in y_cord[j]:
+            P[j] = alright[j]
+    if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
+        val = numpy.random.uniform(low=0, high=1, size=1)
+        if val > (math.exp((Ej_old - E[j])/(KbT))):#sets probability of particle being rejected
+            E = E_old
+            P[j] = P_old
+    #print(j, P[j])
+    if j in range(0, k + g):
+        o1[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
+        for q in range((k + g), (k + c + g + f)):
+            Particle_Energy()
+        for q in range(0, (k + g)):#the old position of the particle may still be occupied, this checks if it is
+            if numpy.array_equal(P[q], P_old):
+                o1[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 1
+                break
+            else:
+                o1[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 0
+    if j in range((k + g), (k + c + g + f)):
+        o2[((y_cord[j] - (y + 1)), (x_cord[j] - (a + 1)))] = 1
+        for q in range(0, (k + g)):
+            Particle_Energy()
+        for q in range((k + g), (k + c + g + f)):#the old position of the particle may still be occupied, this checks if it is
+            if numpy.array_equal(P[q], P_old):
+                o2[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 1
+                break
+            else:
+                o2[((y_cord_old - (y + 1)), (x_cord_old - (a + 1)))] = 0 
+    for q in range(0, (k + c + g + f)): #prints out each particle into the output file
+        print(*P[q], end = " ", file= fileout)
+        if q == ((k + c + g + f) - 1): #checks if we're at the last particle
+            print(file= fileout)
+    s = numpy.vsplit(x[1], [k, (k + g), (k + c + g), (k + c + g + f)])#splits up y-coordinates of particles
+    A1T1 = s[0]#y-coord of type 1 particles spawning in the lower area
+    A2T1 = s[1]#y-coord of type 2 particles spawning in the lower area
+    A1T2 = s[2]#y-coord of type 1 particles spawning in the higher area
+    A2T2 = s[3]#y-coord of type 2 particles spawning in the higher area
+    type1 = numpy.concatenate((A1T1, A2T1), axis= 0) #aggregates all type one particles regardless of spawn
+    type2 = numpy.concatenate((A1T2, A2T2), axis= 0) #aggregates all type two particles regardless of spawn
+    for q in range(0, (k + g)): 
+        if type1[q] < uph: #tells us how many type one particles are in area one
+            type1low = type1low + 1
+        elif type1[q] > h:#tells us how many type one particles are in area two
+            #maybe make it so that transporters aren't included in area two, not sure yet
+            type1high = type1high + 1
+    for q in range(0, (c + f)):
+        if type2[q] < uph:#tells us how many type two particles are in area one
+            type2low = type2low + 1
+        elif type2[q] > h: #tells us how many type two particles are in area two
+            type2high = type2high + 1
+    #densitylow = type1low + type2low #number of particles in the lower compartment
+    #densityhigh = type1high + type2high #number of particles in the higher compartment
+    type1highs[i] = type1high#remove these four lines when not doing diffussion testing
+    type2highs[i] = type2high
+    type1lows[i] = type1low
+    type2lows[i] = type2low
+    if i in range(100000, n):
+        thing.append(type2highs[i])
+fileout.close() 
+pylab.title("intracellular type1") 
+pylab.xlim([0, n])
+pylab.ylim([0, (k + g)])
+pylab.plot(lol, type1highs)
+pylab.savefig("highgrapht1.png",dpi=600) 
+pylab.show() 
+pylab.title("intracellular type2") 
+pylab.xlim([0, n])
+pylab.ylim([0, (c + f)])
+pylab.plot(lol, type2highs)
+pylab.savefig("highgrapht2.png",dpi=600) 
+pylab.show()
+for j in range(0, (k + c + g + f)):
+    print(j, P[j])
+print(E)
+print(o1)
+print(o2)
+#print(mean(thing))
