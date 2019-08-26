@@ -6,22 +6,22 @@ import copy
 Transporter=0
 Particle=1
 mode=Particle
-n=20000#number of timesteps taken
+n=10000#number of timesteps taken
 #numberline=numpy.arange(n)
 TypeN_Area1Spawn=10 #number of "type 1" particles spawning in area one
 TypeN_Area2Spawn=0 #number of "type 1" particles spawning in area 2
-TypeS_Area1Spawn=0 #number of "type 2" particles spawning in area one
-TypeS_Area2Spawn=1 #number of "type 2" particles spawning in area 2
+TypeS_Area1Spawn=10 #number of "type 2" particles spawning in area one
+TypeS_Area2Spawn=10 #number of "type 2" particles spawning in area 2
 Type_N = range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn))
 Type_S = range((TypeN_Area1Spawn + TypeN_Area2Spawn), ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)))
 x_bound_low=-1#lower bound for x and x-randomization
 x_bound_high=10#upper bound for x and x-randomization
 h=10#separates areas into area one and area two, and sets y inter-area boundrary
-uph=15
+uph=12
 y_bound_low=-1#lower bound for y and y-randomization
 y_bound_high=21#upper bound for y and y randomization
-TypeN_Transporter_Channel=()#sets part of transporter which rejects type one particles
-TypeS_Transporter_Channel=()#sets part of transporter which rejects type two particles
+TypeN_Transporter_Channel=((5), (7))#sets part of transporter which rejects type one particles
+TypeS_Transporter_Channel=((6), (8))#sets part of transporter which rejects type two particles
 #in order for this to work, they must have the same number of entries
 x_bounds = ([x_bound_low], [x_bound_high])#sets upper and lower boundaries at x=1  and x=10
 y_bounds = ([y_bound_low], [y_bound_high])#sets upper and lower y boundaries and the cell membrane level
@@ -88,18 +88,21 @@ def Transporter_Energy():
         if Ising_Dummy_Ends[u, v + 1] == 1:
             E_component2 = negepsilion
     E[variable] = E_component1 + E_component2
-    E[j] = E[variable]
 def Particle_Energy2():
-    if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
-        if numpy.sum(Type2j_Matrix) == numpy.array([0]):
-            E[j] = 0
+    Type1_Matrix = [[o1[(((y_cord[q] - (y_bound_low + 1) - 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) - 1), (x_cord[q] - (x_bound_low + 1)))]], [o1[(((y_cord[q] - (y_bound_low + 1)) - 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o1[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[((y_cord[q] - (y_bound_low + 1)), (x_cord[q] - (x_bound_low + 1)))]], [o1[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), (x_cord[q] - (x_bound_low + 1)))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]]]
+    Type2_Matrix = [[o2[(((y_cord[q] - (y_bound_low + 1) - 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) - 1), (x_cord[q] - (x_bound_low + 1)))]], [o2[(((y_cord[q] - (y_bound_low + 1)) - 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o2[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[((y_cord[q] - (y_bound_low + 1)), (x_cord[q] - (x_bound_low + 1)))]], [o2[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), (x_cord[q] - (x_bound_low + 1)))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]]]
+    if q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
+        #print(j, numpy.sum(Type2j_Matrix))
+        if numpy.sum(Type2_Matrix) == numpy.array([0]):
+            E[q] = 0
         else:
-            E[j] = negepsilion
-    elif j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-        if numpy.sum(Type1j_Matrix) == numpy.array([0]):
-            E[j] = 0
+            E[q] = negepsilion
+    elif q in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        #print(j, numpy.sum(Type1j_Matrix))
+        if numpy.sum(Type1_Matrix) == numpy.array([0]):
+            E[q] = 0
         else:
-            E[j] = negepsilion
+            E[q] = negepsilion
 def Particle_Energy():
     if x_bounds in x_cord[j]:#keeps particles from leaving the system's boundaries
         E[j] = math.inf#energy set to infinite if particle runs into x boundaries
@@ -109,32 +112,36 @@ def Particle_Energy():
         if TypeS_Transporter_Channel in x_cord[j]:#sets which"end" of transporter is altered
             if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
                 E[j] = math.inf#rejects type one particles from entering the special transporters from this way
-            if mode == 0:
+            elif mode == 0:
                 if Ising_Dummy_Ends[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - h] == 1:
                     E[j] = negepsilion#sets energy for particle interaction within channel
                 else:
                     E[j] = 0
-            if mode == 1:
+            elif mode == 1:
+                q = j
                 Particle_Energy2()
         elif TypeN_Transporter_Channel in x_cord[j]:
             if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
                 E[j] = math.inf#rejects type two particles from entering the special transporters from this way
-            if mode == 0:
+            elif mode == 0:
                 if Ising_Dummy_Ends[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - h] == 1:
                     E[j] = negepsilion
                 else:
                     E[j] = 0
-            if mode == 1:
+            elif mode == 1:
+                q = j
                 Particle_Energy2()
         else:
             E[j] = math.inf
     else:
         if mode == 1:
+            q = j
             Particle_Energy2()
         if mode == 0:
             E[j] = 0#default energy is 0
-for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-    Particle_Energy()
+if mode == 1:
+    for q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        Particle_Energy2()
 for variable in range((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn), ((len(Cell_Membrane) * len(TypeN_Transporter_Channel)) + (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
     Transporter_Energy()
 for i in range(0, n):
@@ -163,11 +170,11 @@ for i in range(0, n):
             Ising_Dummy_Ends[u, v] = 0
         elif Ising_Dummy_Ends[u, v] == 0:
             Ising_Dummy_Ends[u, v] = 1
-        for variable in range(j, (j + 1)):
-            Transporter_Energy()
         for variable in range((j + len(TypeN_Transporter_Channel)), (j + len(TypeN_Transporter_Channel) + 1)):
             Transporter_Energy()
         for variable in range((j - len(TypeN_Transporter_Channel)), ((j - len(TypeN_Transporter_Channel)) + 1)):
+            Transporter_Energy()
+        for variable in range(j, (j + 1)):
             Transporter_Energy()
             Epartcount = 0
             if Ising_Dummy_Ends[u, v] == 0:
@@ -180,26 +187,25 @@ for i in range(0, n):
                     if y_cord[j] == Cell_Membrane[q] and x_cord[j] in Transporter_List[u]:
                         Epartcount = Epartcount + negepsilion#accounts for change in particle energy within transporter when it's changing
                         copy.copy(Epartcount)
-            E_combined = E[variable]
-            E[variable] = E_combined + Epartcount
+            E[j] = E[variable] + Epartcount
         for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
             Particle_Energy()    
     if E[j] > Ej_old:#if the energy's lower or equal we automatically accept it
-        print(j)
+        #print(j)
         val = numpy.random.uniform(low=0, high=1, size=1)
         if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
             if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)): #resets to old state if the move is rejected
                 Position_Matrix[j] = P_old
             E = E_old
             Ising_Dummy_Ends = I_old
+    if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
+        o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
+        o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
+    if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
+        o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
+        o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
     if mode == 1:
-        if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
-            o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
-            o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
-        if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
-            o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
-            o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
-        for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        for q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
             Particle_Energy2()
     if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(Cell_Membrane) * len(TypeN_Transporter_Channel))):
         for variable in range(j, (j + 1)):
