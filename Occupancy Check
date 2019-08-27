@@ -8,7 +8,7 @@ import copy
 def main():
     Transporter=0
     Particle=1
-    mode=Particle #sets what mode we are operating in, particle or transporter
+    mode=Transporter #sets what mode we are operating in, particle or transporter
     Multiple=0
     Single=1
     Occupancy=Multiple #sets if more than one particle can occupy a point
@@ -16,7 +16,7 @@ def main():
     n=500000  #number of timesteps taken
     numberline=numpy.arange(n)
     Value_Storage = []
-    TypeN_Area1Spawn=40  #number of "type N" particles spawning in area one
+    TypeN_Area1Spawn=140  #number of "type N" particles spawning in area one
     TypeN_Area2Spawn=0  #number of "type N" particles spawning in area 2
     TypeS_Area1Spawn=20  #number of "type S" particles spawning in area one
     TypeS_Area2Spawn=20  #number of "type S" particles spawning in area 2
@@ -62,10 +62,10 @@ def main():
     Ising = numpy.concatenate((zeros, Ising_precursor, zeros), axis=1)  #Ising model for transporter model
     Transporter_y_cord = numpy.arange(0, len(TypeN_Transporter_Channel))  #
     E = numpy.zeros(((len(Cell_Membrane) + 1) * len(TypeN_Transporter_Channel)) + (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))  #energy matrix
-    Special = (TypeN_Transporter_Channel, TypeS_Transporter_Channel)
+    Ordered_Transporters = (TypeN_Transporter_Channel, TypeS_Transporter_Channel)
     Transporter_List = numpy.zeros((len(TypeN_Transporter_Channel), 2))
     for u in range(0, len(TypeN_Transporter_Channel)):
-        Transporter_List[u] = [item[u] for item in Special]
+        Transporter_List[u] = [item[u] for item in Ordered_Transporters]
         
     o1 = numpy.zeros((((y_bound_high - y_bound_low)), ((x_bound_high - x_bound_low)))) #occupancy matrix for Type N particles
     for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):  #sets all starting positions to occupied
@@ -75,7 +75,7 @@ def main():
         o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1 
         
     KbT=1  #total energy of system
-    epsilon=.1  #sets energy for an interaction
+    epsilon=1  #sets energy for an interaction
     negepsilon= epsilon * -1
 
     type1lows = numpy.zeros(n)  #counts what particles of what types are in what area
@@ -211,8 +211,10 @@ def main():
                 Ising[u, v] = 1
             for variable in range((j + len(TypeN_Transporter_Channel)), (j + len(TypeN_Transporter_Channel) + 1)):
                 Transporter_Energy()
+                #calculates energy of the "higher" affected transporter from the transporter shift
             for variable in range((j - len(TypeN_Transporter_Channel)), ((j - len(TypeN_Transporter_Channel)) + 1)):
                 Transporter_Energy()
+                #calculates energy of the "lower" other affected transporter from the transporter shift
             for variable in range(j, (j + 1)):
                 Transporter_Energy()
                 #calculates how much the energy of the move changes due to particle presence within the transporter
