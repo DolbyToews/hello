@@ -6,24 +6,27 @@ from statistics import mean
 import copy
 
 def main():
+    Yes=0
+    No=1
+    Particle_Interaction=Yes
     Transporter=0
-    Particle=1
+    Holes=1
     mode=Transporter #sets what mode we are operating in, particle or transporter
     Multiple=0
     Single=1
     Occupancy=Multiple #sets if more than one particle can occupy a point
     
-    n=500000  #number of timesteps taken
+    n=100000  #number of timesteps taken
     numberline=numpy.arange(n)
     Value_Storage = []
-    TypeN_Area1Spawn=140  #number of "type N" particles spawning in area one
+    TypeN_Area1Spawn=40  #number of "type N" particles spawning in area one
     TypeN_Area2Spawn=0  #number of "type N" particles spawning in area 2
     TypeS_Area1Spawn=20  #number of "type S" particles spawning in area one
     TypeS_Area2Spawn=20  #number of "type S" particles spawning in area 2
     x_bound_low=-1  #lower bound for x and x-randomization
     x_bound_high=10  #upper bound for x and x-randomization
-    Cell_Membrane_low=9  #separates areas into area one and area two, and sets y inter-area boundrary
-    Cell_Membrane_high=11  #top of inter-area boundarary
+    Cell_Membrane_low=1  #separates areas into area one and area two, and sets y inter-area boundrary
+    Cell_Membrane_high=19  #top of inter-area boundarary
     y_bound_low=-1  #lower bound for y and y-randomization
     y_bound_high=21  #upper bound for y and y randomization
     TypeN_Transporter_Channel=((5), (7))  #sets part of transporter which rejects type N particles
@@ -106,19 +109,14 @@ def main():
         E[variable] = E_component1 + E_component2
         
     def Particle_Energy2():
+        q = j
         #calculates the energy from particles being adjacent to particles of the opposite type in particle mode
         Type1_Matrix = [[o1[(((y_cord[q] - (y_bound_low + 1) - 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) - 1), (x_cord[q] - (x_bound_low + 1)))]], [o1[(((y_cord[q] - (y_bound_low + 1)) - 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o1[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[((y_cord[q] - (y_bound_low + 1)), (x_cord[q] - (x_bound_low + 1)))]], [o1[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), (x_cord[q] - (x_bound_low + 1)))]], [o1[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]]]
         Type2_Matrix = [[o2[(((y_cord[q] - (y_bound_low + 1) - 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) - 1), (x_cord[q] - (x_bound_low + 1)))]], [o2[(((y_cord[q] - (y_bound_low + 1)) - 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o2[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[((y_cord[q] - (y_bound_low + 1)), (x_cord[q] - (x_bound_low + 1)))]], [o2[((y_cord[q] - (y_bound_low + 1)), ((x_cord[q] - (x_bound_low + 1)) + 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) - 1))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), (x_cord[q] - (x_bound_low + 1)))]], [o2[(((y_cord[q] - (y_bound_low + 1)) + 1), ((x_cord[q] - (x_bound_low + 1)) + 1))]]]
         if q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
-            if numpy.sum(Type2_Matrix) == numpy.array([0]):
-                E[q] = 0
-            else:
-                E[q] = negepsilon
+            E[q] = negepsilon * numpy.sum(Type2_Matrix)
         elif q in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-            if numpy.sum(Type1_Matrix) == numpy.array([0]):
-                E[q] = 0
-            else:
-                E[q] = negepsilon
+            E[q] = negepsilon * numpy.sum(Type1_Matrix)
                 
     def Particle_Energy():
         #calculates energy from a particle's movement, this applies to running into boundaries and entering transporters.
@@ -132,38 +130,41 @@ def main():
         elif Occupancy == Single and o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
             E[j] = math.inf
         elif Cell_Membrane in y_cord[j]:
+            E[j] = 0
             if TypeS_Transporter_Channel in x_cord[j]:
                 if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
                     E[j] = math.inf  #rejects type N particles from entering the special transporters from this way
-                elif mode == Transporter:
-                    if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
-                        E[j] = negepsilon  #sets energy for particle interaction within channel
+                else:
+                    if mode == Transporter:
+                        if Particle_Interaction == Yes:
+                            Particle_Energy2()
+                        if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
+                             E[j] = E[j] + negepsilon  #sets energy for particle interaction within channel
+                    elif Particle_Interaction == Yes:
+                        Particle_Energy2()
                     else:
                         E[j] = 0
-                elif mode == Particle:
-                    q = j
-                    Particle_Energy2()
             elif TypeN_Transporter_Channel in x_cord[j]:
                 if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
                     E[j] = math.inf
-                elif mode == Transporter:
-                    if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
-                        E[j] = negepsilon
+                else:
+                    if mode == Transporter:
+                        if Particle_Interaction == Yes:
+                            Particle_Energy2()
+                        if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
+                             E[j] = E[j] + negepsilon  #sets energy for particle interaction within channel
+                    elif Particle_Interaction == Yes:
+                        Particle_Energy2()
                     else:
                         E[j] = 0
-                elif mode == Particle:
-                    q = j
-                    Particle_Energy2()
             else:
                 E[j] = math.inf
         else:
-            if mode == Particle:
-                q = j
+            if Particle_Interaction == Yes:
                 Particle_Energy2()  #if the simulation is in particle mode and the move is not rejected, check for energy according to particle mode rules
-            if mode == Transporter:
+            else:
                 E[j] = 0  #if the simulation is in transporter mode, then the energy equals 0
-                
-    if mode == Particle:
+    if Particle_Interaction == Yes:
         #sets starting energy from particle adjacency 
         for q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
             Particle_Energy2()
@@ -172,7 +173,7 @@ def main():
         Transporter_Energy()
         
     for i in range(0, n):
-        #print(i)
+        print(i)
         #sets timesteps for which the program runs
         type1low = 0
         type1high = 0
@@ -181,11 +182,12 @@ def main():
         if mode == Transporter:
             j = random.randint(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(Cell_Membrane) * len(TypeN_Transporter_Channel)) - 1))  
             #this picks which particle moves or transporter shifts
-        if mode == Particle:
+        if mode == Holes:
             #set the energy of the particle to be accurate before the move. Running this here rather than checking the energy saves time, as we're doing one check per run instead of many
             j = random.randint(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) - 1))  #this picks which particle moves
-            q = j
-            Particle_Energy2()
+        if j in range(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
+            for q in range(j, j + 1):
+                Particle_Energy()
         E_old = E.copy() #saves old energy matrix in case the new move is rejected
         Ej_old = E[j].copy()  #saves old individual energy for use in Monte Carlo rejection
         I_old = Ising.copy()
@@ -231,11 +233,7 @@ def main():
                             copy.copy(Epartcount)
                 E[j] = E[variable] + Epartcount  #energy after taking into account the change in energy of particles within the transporter
                 #The energy from the transporters interactions with the surrounding transporters is added with that of the energy from it's interactions with particles within the transporter
-                #this sum is the total energy of the transporter shift
-            for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-                Particle_Energy() 
-                #calculates the energy of all particles after the transporter shift
-                
+                #this sum is the total energy of the transporter shift   
         if E[j] > Ej_old: #if the energy's lower or equal we automatically accept it, if not, we determine if it gets accepted
             #if a move is rejected the system resets to how it was before the timestep
             val = numpy.random.uniform(low=0, high=1, size=1)
@@ -244,7 +242,7 @@ def main():
                     Position_Matrix[j] = P_old
                 E = E_old
                 Ising = I_old
-                
+         
         if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):  #sends Type N particles to starting position if they leave area one
             if y_cord[j] == Cell_Membrane_high + 1:
                 Position_Matrix[j] = Return_To_Start[j]
@@ -280,19 +278,25 @@ def main():
         type2highs[i] = type2high
         type1lows[i] = type1low
         type2lows[i] = type2low
-        if i in range(50000, n):
-            Value_Storage.append(type2highs[i])
+        #if i in range(50000, n):
+         #   Value_Storage.append(type2highs[i])
             
-    if mode == Particle:
-        for q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-            Particle_Energy2()
+    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        Particle_Energy()
     pylab.title("intracellular type2") 
     pylab.xlim([0, n])
     pylab.ylim([0, (TypeS_Area1Spawn + TypeS_Area2Spawn)])
     pylab.plot(numberline, type2highs)
     pylab.savefig("highgrapht2.png",dpi=600) 
     pylab.show()
-    print(mean(Value_Storage))
-
+    #print(mean(Value_Storage))
+    print(o1)
+    print(o2)
+    print(Ising)
+    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        print(j, Position_Matrix[j], E[j])
+    print(Ising)
+    for j in range((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(Cell_Membrane) * len(TypeN_Transporter_Channel))):
+        print(j, E[j])
 if __name__ == '__main__':
     main()
