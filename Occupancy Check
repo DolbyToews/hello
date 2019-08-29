@@ -3,7 +3,6 @@ import pylab
 import random
 import math
 from statistics import mean
-import copy
 
 def main():
     Yes=0
@@ -219,18 +218,9 @@ def main():
                 #calculates energy of the "lower" other affected transporter from the transporter shift
             for variable in range(j, (j + 1)):
                 Transporter_Energy()
+                Adjacent_Particles = [[o1[(((v - 1) + Cell_Membrane_low), (TypeN_Transporter_Channel[u]))]], [o2[(((v - 1) + Cell_Membrane_low), (TypeS_Transporter_Channel[u]))]]]
                 #calculates how much the energy of the move changes due to particle presence within the transporter
-                Epartcount = 0
-                if Ising[u, v] == -1:
-                    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-                        if y_cord[j] == Cell_Membrane[q] and x_cord[j] in Transporter_List[u]:
-                            Epartcount = Epartcount + epsilon  #accounts for change in particle energy within transporter when it's changing
-                            copy.copy(Epartcount)
-                if Ising[u, v] == 1:
-                    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-                        if y_cord[j] == Cell_Membrane[q] and x_cord[j] in Transporter_List[u]:
-                            Epartcount = Epartcount - epsilon
-                            copy.copy(Epartcount)
+                Epartcount = Ising[u, v] * (-1 * numpy.sum(Adjacent_Particles))
                 E[j] = E[variable] + Epartcount  #energy after taking into account the change in energy of particles within the transporter
                 #The energy from the transporters interactions with the surrounding transporters is added with that of the energy from it's interactions with particles within the transporter
                 #this sum is the total energy of the transporter shift   
