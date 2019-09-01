@@ -7,7 +7,7 @@ from statistics import mean
 def main():
     Yes=0
     No=1
-    Particle_Interaction=No
+    Particle_Interaction=Yes
     Transporter=0
     Holes=1
     mode=Transporter #sets what mode we are operating in, particle or transporter
@@ -145,7 +145,7 @@ def main():
                     if mode == Transporter:
                         if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
                              Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = negepsilon  #sets energy for particle interaction within channel
-                             Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])][:, j] = negepsilon
+                             Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = negepsilon
                     if Particle_Interaction == Yes:
                         Particle_Energy2()
                     else:
@@ -155,12 +155,10 @@ def main():
                     Interaction_Matrix[j][j] = math.inf
                 else:
                     if mode == Transporter:
-                        if Particle_Interaction == Yes:
-                            Particle_Energy2()
                         if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
                              Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j])] = negepsilon  #sets energy for particle interaction within channel
-                             Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j])][:, j] = negepsilon
-                    elif Particle_Interaction == Yes:
+                             Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j]), j] = negepsilon
+                    if Particle_Interaction == Yes:
                         Particle_Energy2()
                     else:
                         Interaction_Matrix[j][j] = 0
