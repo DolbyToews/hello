@@ -140,7 +140,8 @@ def main():
         elif Cell_Membrane in y_cord[j]:
             if TypeS_Transporter_Channel in x_cord[j]:
                 if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
-                    Interaction_Matrix[j][j] = math.inf  #rejects type N particles from entering the special transporters from this way
+                    Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = math.inf
+                    Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = math.inf
                 else:
                     if mode == Transporter:
                         if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
@@ -149,10 +150,12 @@ def main():
                     if Particle_Interaction == Yes:
                         Particle_Energy2()
                     else:
-                        Interaction_Matrix[j][j] = 0
+                        Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = 0
+                        Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = 0
             elif TypeN_Transporter_Channel in x_cord[j]:
                 if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
-                    Interaction_Matrix[j][j] = math.inf
+                    Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = negepsilon  
+                    Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = negepsilon
                 else:
                     if mode == Transporter:
                         if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
@@ -161,7 +164,8 @@ def main():
                     if Particle_Interaction == Yes:
                         Particle_Energy2()
                     else:
-                        Interaction_Matrix[j][j] = 0
+                        Interaction_Matrix[j][(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = 0
+                        Interaction_Matrix[(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn) + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = 0
             else:
                 Interaction_Matrix[j][j] = math.inf
         else:
