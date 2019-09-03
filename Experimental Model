@@ -9,7 +9,7 @@ def main():
     Single=1
     Occupancy=Multiple #sets if more than one particle can occupy a point
     
-    n=1000000  #number of timesteps taken
+    n=500000  #number of timesteps taken
     numberline=numpy.arange(n)
     Value_Storage = []
     Value_Storage1 = []
@@ -69,34 +69,21 @@ def main():
     epsilon=1  #sets energy for an interaction
     negepsilon= epsilon * -1
 
-    Ising = 1
-
     type1lows = numpy.zeros(n)  #counts what particles of what types are in what area
     type1highs = numpy.zeros(n)
     type2lows = numpy.zeros(n)
-    type2highs = numpy.zeros(n)
-        
+    type2highs = numpy.zeros(n)   
     def Particle_Energy2():
         q = j
         #calculates the energy from particles being adjacent to particles of the opposite type in particle mode
-        Type1_Matrix = [[o1[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) - 1))]]]
-        Type2_Matrix = [[o2[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) + 1))]]]
+        Type1_Matrix = [[o1[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) - 1))]], [o1[(((Cell_Membrane_high - 1) - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) - 1))]]]
+        Type2_Matrix = [[o2[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) + 1))]], [o2[(((Cell_Membrane_high - 1) - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) + 1))]]]
         if q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
             if numpy.sum(Type2_Matrix) == 0:
-                if Ising == 1:
-                    E[q] = math.inf
-                else:
-                    E[q] = 0
-            else:
-                E[q] = 0
+                E[q] = math.inf
         elif q in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
             if numpy.sum(Type1_Matrix) == 0:
-                if Ising == 1:
-                    E[q] = math.inf
-                else:
-                    E[q] = 0
-            else:
-                E[q] = 0
+                E[q] = math.inf
                 
     def Particle_Energy():
         #calculates energy from a particle's movement, this applies to running into boundaries and entering transporters.
@@ -136,22 +123,16 @@ def main():
         type1high = 0
         type2low = 0
         type2high = 0
-        j = random.randint(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)))  #this picks which particle moves
+        j = random.randint(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))  #this picks which particle moves
         E_old = E.copy() #saves old energy matrix in case the new move is rejected
         Ej_old = E[j].copy()  #saves old individual energy for use in Monte Carlo rejection
         y_cord_old = y_cord.copy()
         x_cord_old = x_cord.copy()
-        if j in range(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
+        if j in range(0, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn - 1):
         #if a particle is selected to move, we store the old position and calculate the energy from the move
             P_old = Position_Matrix[j].copy() #saves old position in case the new move is rejected
             Position_Matrix[j] = P_old + random.choice(Eligible_Moves) #the new move
             Particle_Energy()
-            
-        if j == TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn:
-            if Ising == 1:
-                Ising == -1
-            elif Ising == -1:
-                Ising == 1
             
         if E[j] > Ej_old: #if the energy's lower or equal we automatically accept it, if not, we determine if it gets accepted
             #if a move is rejected the system resets to how it was before the timestep
