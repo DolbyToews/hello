@@ -5,4 +5,4 @@
 # Then you select the bounds of the system as well as the location of the Cell Membrane and the locations of the transporters. Transporters can be selected by placeing a number coorespondnig to an X-value in "TypeN_Transporter_Channel". The next highest value automatically fills in for the "TypeS_Transporter_Channel" and no action is needed to fill the TypeS_Transporter_Channel list
 # More towards the end of the initialization section, you'll have the option to change the energy from an interaction. Customizable interactions include particles with a transporter with an upspin, particles with a transporter holding a downspin, particles interacting with other particles, and transporter squares interacting with other transporter squares
 
-# Potential Outputs
+# Code in lines 288-284 keeps the Type N particle concentrations fixed. This is included for reference if the user wants to edit the program so that concentrations aren't fixed, or they want to fix the Type S concentrations as well
