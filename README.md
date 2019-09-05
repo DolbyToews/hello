@@ -1,3 +1,8 @@
-# untitled24.py contains the second latest version of my code
-# untitled0.py is slightly different, I made a few changes to the code that make it run 33% faster
-# however, neither currently export to a file(requires only one line of code to be added)
+# How to run the program
+# The program allows you to customize the system in which you run it. Options to change it include the number of particles of each type spawned, in what area these particles spawn, how thick the cellular membrane is, where transporters are in the intracellular membrane are, among other things
+# In the beginning of the program, you can select which mode you want the program to run in. Options include Particle Interaction mode, where particles of differing types are attracted to eachother, Transporter mode, where each transporter square adopts an Ising state with a customizable energy, as well as the ability to select if each point can contain a single particle, or multiple particles.
+# In the initialization section, you can select how many Type N particles spawn in each area, and how many Type S particles spawn in each area, and for how many timesteps you want the program to run.
+# Then you select the bounds of the system as well as the location of the Cell Membrane and the locations of the transporters. Transporters can be selected by placeing a number coorespondnig to an X-value in "TypeN_Transporter_Channel". The next highest value automatically fills in for the "TypeS_Transporter_Channel" and no action is needed to fill the TypeS_Transporter_Channel list
+# More towards the end of the initialization section, you'll have the option to change the energy from an interaction. Customizable interactions include particles with a transporter with an upspin, particles with a transporter holding a downspin, particles interacting with other particles, and transporter squares interacting with other transporter squares
+
+# Potential Outputs
