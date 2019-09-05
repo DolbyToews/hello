@@ -45,6 +45,7 @@ def main():
     KbT=1  #total energy of system
     epsilon=1  #sets energy for an interaction
     negative_epsilon= epsilon * -1
+    
     UpState_Energy = negative_epsilon
     DownState_Energy = epsilon
     Parallel_Transporter_States_Energy = epsilon
@@ -160,14 +161,6 @@ def main():
         elif Occupancy == Single and o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
             Interaction_Matrix[j][j] = math.inf
         elif Occupancy == Single and o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
-            Interaction_Matrix[j][j] = math.inf
-        elif x_cord[j] == 2 and y_cord[j] == 9:
-            Interaction_Matrix[j][j] = math.inf
-        elif x_cord[j] == 2 and y_cord[j] == 12:
-            Interaction_Matrix[j][j] = math.inf
-        elif x_cord[j] == 4 and y_cord[j] == 9:
-            Interaction_Matrix[j][j] = math.inf
-        elif x_cord[j] == 4 and y_cord[j] == 12:
             Interaction_Matrix[j][j] = math.inf
         elif Cell_Membrane in y_cord[j] and  o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
             Interaction_Matrix[j][j] = math.inf
