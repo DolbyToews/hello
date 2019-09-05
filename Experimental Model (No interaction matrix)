@@ -1,0 +1,224 @@
+import numpy
+import pylab
+import random
+import math
+from statistics import mean
+
+def main():
+    Multiple=0
+    Single=1
+    Occupancy=Multiple #sets if more than one particle can occupy a point
+    
+    n=500000  #number of timesteps taken
+    numberline=numpy.arange(n)
+    Value_Storage = []
+    Value_Storage1 = []
+    Value_Storage2 = []
+    Value_Storage3 = []
+    TypeN_Area1Spawn=50  #number of "type N" particles spawning in area one
+    TypeN_Area2Spawn=5  #number of "type N" particles spawning in area 2
+    TypeS_Area1Spawn=10  #number of "type S" particles spawning in area one
+    TypeS_Area2Spawn=20  #number of "type S" particles spawning in area 2
+    x_bound_low=-1  #lower bound for x and x-randomization
+    x_bound_high=10  #upper bound for x and x-randomization
+    Cell_Membrane_low=7  #separates areas into area one and area two, and sets y inter-area boundrary
+    Cell_Membrane_high=13  #top of inter-area boundarary
+    y_bound_low=-1  #lower bound for y and y-randomization
+    y_bound_high=21  #upper bound for y and y randomization
+    #in order for transporters to work, the above lists must have the same number of entries
+    x_bounds = ([x_bound_low], [x_bound_high])  #sets upper and lower boundaries at x=1  and x=10
+    y_bounds = ([y_bound_low], [y_bound_high])  #sets upper and lower y boundaries and the cell membrane level
+    Cell_Membrane = (numpy.arange(Cell_Membrane_low, (Cell_Membrane_high + 1)))  #sets width of interarea boundary
+    Eligible_Moves = numpy.array([(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(1,-1),(1,0),(0,1),(1,1)]) #list of possible moves that a particle can make
+    
+    TypeN_Transporter_Channel=((3), (7))  #sets part of transporter which rejects type N particles
+    TypeS_Transporter_Channel=((4), (8))  #sets part of transporter which rejects type S particles
+    
+    A1TNx = numpy.random.randint(low=x_bound_low + 1, high=x_bound_high, size =((TypeN_Area1Spawn), 1))  #randomization for area one x-bound
+    A1TNy = numpy.random.randint(low=y_bound_low + 1, high=Cell_Membrane_low, size =((TypeN_Area1Spawn), 1))  #randomization for area one y-bound
+    A1TN = numpy.concatenate((A1TNx, A1TNy), axis= 1)  #matrix of positions of type N particles in area one
+    
+    A2TNx = numpy.random.randint(low=x_bound_low + 1, high=x_bound_high, size =((TypeN_Area2Spawn), 1))  #randomization for area two x-bound
+    A2TNy = numpy.random.randint(low=Cell_Membrane_high + 1, high=y_bound_high, size =((TypeN_Area2Spawn), 1))  #randomization for area two y-bound
+    A2TN = numpy.concatenate((A2TNx, A2TNy), axis= 1)  #matrix of positions of type N particles in area two
+    
+    A1TSx = numpy.random.randint(low=x_bound_low + 1, high=x_bound_high, size =((TypeS_Area1Spawn), 1))  #randomization for area one x-bound
+    A1TSy = numpy.random.randint(low=y_bound_low + 1, high=Cell_Membrane_low, size =((TypeS_Area1Spawn), 1))  #randomization for area one y-bound
+    A1TS = numpy.concatenate((A1TSx, A1TSy), axis= 1)  #matrix of positions of type S particles in area one
+    
+    A2TSx = numpy.random.randint(low=x_bound_low + 1, high=x_bound_high, size =((TypeS_Area2Spawn), 1))  #randomization for area two x-bound
+    A2TSy = numpy.random.randint(low=Cell_Membrane_high + 1, high=y_bound_high, size =((TypeS_Area2Spawn), 1))  #randomization for area two y-bound
+    A2TS = numpy.concatenate((A2TSx, A2TSy), axis= 1)  #matrix of positions of type S particles in area two
+    
+    E = numpy.zeros(((len(Cell_Membrane) + 1) * len(TypeN_Transporter_Channel)) + (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))  #energy matrix
+    
+    Position_Matrix = numpy.concatenate((A1TN, A2TN, A1TS, A2TS), axis= 0)  #sets matrix of positions, with particles spawning in area two being below those spawning in area one
+    x = numpy.hsplit(Position_Matrix, 2)
+    Return_To_Start = Position_Matrix.copy() #saves starting position matrix
+    x_cord = x[0]  #sets matrix of all x coordinates of all particles
+    y_cord = x[1]  #sets matrix of all y coordinates of all particles
+        
+    o1 = numpy.zeros((((y_bound_high - y_bound_low)), ((x_bound_high - x_bound_low)))) #occupancy matrix for Type N particles
+    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):  #sets all starting positions to occupied
+        o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1    
+    o2 = numpy.zeros((((y_bound_high - y_bound_low)), ((x_bound_high - x_bound_low))))  #occupancy matrix for Type S particles
+    for j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1 
+        
+    KbT=1  #total energy of system
+    epsilon=1  #sets energy for an interaction
+    negepsilon= epsilon * -1
+
+    type1lows = numpy.zeros(n)  #counts what particles of what types are in what area
+    type1highs = numpy.zeros(n)
+    type2lows = numpy.zeros(n)
+    type2highs = numpy.zeros(n)   
+    def Particle_Energy2():
+        q = j
+        #calculates the energy from particles being adjacent to particles of the opposite type in particle mode
+        Type1_Matrix = [[o1[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) - 1))]], [o1[(((Cell_Membrane_high - 1) - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) - 1))]]]
+        Type2_Matrix = [[o2[((y_cord_old[q] - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) + 1))]], [o2[(((Cell_Membrane_high - 1) - (y_bound_low + 1)), ((x_cord_old[q] - (x_bound_low + 1)) + 1))]]]
+        if q in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
+            if numpy.sum(Type2_Matrix) == 0:
+                E[q] = math.inf
+        elif q in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+            if numpy.sum(Type1_Matrix) == 0:
+                E[q] = math.inf
+                
+    def Particle_Energy():
+        #calculates energy from a particle's movement, this applies to running into boundaries and entering transporters.
+        #this is run whenever a particle moves
+        if x_bounds in x_cord[j]:  #keeps particles from leaving the system's boundaries
+            E[j] = math.inf  #energy set to infinite if particle runs into x boundaries
+        elif y_bounds in y_cord[j]:  #this isn't the best solution, as it runs through everything a couple times, however, it does have 100% accuracy
+            E[j] = math.inf  #energy set to infinite if particle runs into y boundaries and membrane 
+        elif Occupancy == Single and o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
+            E[j] = math.inf
+        elif Occupancy == Single and o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
+            E[j] = math.inf
+        elif Cell_Membrane in y_cord[j]:
+            E[j] = 0
+            if TypeS_Transporter_Channel in x_cord[j]:
+                if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):
+                    E[j] = math.inf  #rejects type N particles from entering the special transporters from this way
+                elif y_cord[j] == Cell_Membrane_high - 1:
+                    Particle_Energy2()
+                else:
+                    E[j] = 0
+            elif TypeN_Transporter_Channel in x_cord[j]:
+                if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+                    E[j] = math.inf
+                elif y_cord[j] == Cell_Membrane_high - 1:
+                    Particle_Energy2()
+                else:
+                    E[j] = 0
+            else:
+                E[j] = math.inf
+        else:
+            E[j] = 0  #if the simulation is in transporter mode, then the energy equals 0
+    for i in range(0, n):
+        print(i)
+        #sets timesteps for which the program runs
+        type1low = 0
+        type1high = 0
+        type2low = 0
+        type2high = 0
+        j = random.randint(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))  #this picks which particle moves
+        E_old = E.copy() #saves old energy matrix in case the new move is rejected
+        Ej_old = E[j].copy()  #saves old individual energy for use in Monte Carlo rejection
+        y_cord_old = y_cord.copy()
+        x_cord_old = x_cord.copy()
+        if j in range(0, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn - 1):
+        #if a particle is selected to move, we store the old position and calculate the energy from the move
+            P_old = Position_Matrix[j].copy() #saves old position in case the new move is rejected
+            Position_Matrix[j] = P_old + random.choice(Eligible_Moves) #the new move
+            Particle_Energy()
+            
+        if E[j] > Ej_old: #if the energy's lower or equal we automatically accept it, if not, we determine if it gets accepted
+            #if a move is rejected the system resets to how it was before the timestep
+            val = numpy.random.uniform(low=0, high=1, size=1)
+            if val > (math.exp((Ej_old - E[j])/(KbT))):#equation will need to be changed later(rn inaccurate)
+                if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)): #resets to old state if the move is rejected
+                    Position_Matrix[j] = P_old
+                E = E_old
+         
+        if j in range(0, TypeN_Area1Spawn):  #sends Type N particles to starting position if they leave area one
+            if y_cord[j] == Cell_Membrane_high + 1:
+                Position_Matrix[j] = Return_To_Start[j]
+        
+        if j in range(TypeN_Area1Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn):  #sends Type N particles to starting position if they leave area two
+            if y_cord[j] == Cell_Membrane_low - 1:
+                Position_Matrix[j] = Return_To_Start[j]
+                
+        if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):  #changes occupancy matrix to give accurate results
+            o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
+            o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o1[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
+        if j in range((TypeN_Area1Spawn + TypeN_Area2Spawn), ((TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn))):
+            o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
+            o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
+                
+        s = numpy.vsplit(x[1], [(TypeN_Area1Spawn + TypeN_Area2Spawn)])#splits up y-coordinates of particles
+        type1 = s[0]#y-coord of type 1 particles spawning in the lower area
+        type2 = s[1]#y-coord of type 2 particles spawning in the lower area
+        for q in range(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn))): 
+            if type1[q] < Cell_Membrane_high: #tells us how many type one particles are in area one
+                type1low = type1low + 1
+            elif type1[q] >= Cell_Membrane_high:#tells us how many type one particles are in area two
+                #maybe make it so that transporters aren't included in area two, not sure yet
+                type1high = type1high + 1
+        for q in range(0, (TypeS_Area1Spawn + TypeS_Area2Spawn)):
+            if type2[q] < Cell_Membrane_high:#tells us how many type two particles are in area one
+                type2low = type2low + 1
+            elif type2[q] >= Cell_Membrane_high: #tells us how many type two particles are in area two
+                type2high = type2high + 1
+        #densitylow = type1low + type2low #number of particles in the lower compartment
+        #densityhigh = type1high + type2high #number of particles in the higher compartment
+        type1highs[i] = type1high#remove these four lines when not doing diffussion testing
+        type2highs[i] = type2high
+        type1lows[i] = type1low
+        type2lows[i] = type2low
+        if i in range(50000, n):
+            Value_Storage.append(type2highs[i])
+        if i in range(50000, n):
+            Value_Storage1.append(type2lows[i])
+        if i in range(50000, n):
+            Value_Storage2.append(type1highs[i])
+        if i in range(50000, n):
+            Value_Storage3.append(type1lows[i])
+            
+    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        Particle_Energy()
+    pylab.title("intracellular type2") 
+    pylab.xlim([0, n])
+    pylab.ylim([0, (TypeS_Area1Spawn + TypeS_Area2Spawn)])
+    pylab.plot(numberline, type2highs)
+    pylab.savefig("highgrapht2.png",dpi=600) 
+    pylab.show()
+    print(mean(Value_Storage))
+    pylab.title("extracellular type2") 
+    pylab.xlim([0, n])
+    pylab.ylim([0, (TypeS_Area1Spawn + TypeS_Area2Spawn)])
+    pylab.plot(numberline, type2lows)
+    pylab.savefig("highgrapht2.png",dpi=600) 
+    pylab.show()
+    print(mean(Value_Storage1))
+    pylab.title("intracellular type1") 
+    pylab.xlim([0, n])
+    pylab.ylim([0, (TypeN_Area1Spawn + TypeN_Area2Spawn)])
+    pylab.plot(numberline, type1highs)
+    pylab.savefig("highgrapht2.png",dpi=600) 
+    pylab.show()
+    print(mean(Value_Storage2))
+    pylab.title("extracellular type1") 
+    pylab.xlim([0, n])
+    pylab.ylim([0, (TypeN_Area1Spawn + TypeN_Area2Spawn)])
+    pylab.plot(numberline, type1lows)
+    pylab.savefig("highgrapht2.png",dpi=600) 
+    pylab.show()
+    print(mean(Value_Storage3))
+    print(o1)
+    print(o2)
+    for j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn)):
+        print(j, Position_Matrix[j], E[j])
+if __name__ == '__main__':
+    main()
