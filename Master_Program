@@ -15,15 +15,17 @@ def main():
     Single=1
     Occupancy=Multiple #sets if more than one particle can occupy a point
     
-    n=500000  #number of timesteps taken
+    n=1000000  #number of timesteps taken
     numberline=numpy.arange(n)
     Value_Storage = []
     TypeN_Area1Spawn=40  #number of "type N" particles spawning in area one
     TypeN_Area2Spawn=0  #number of "type N" particles spawning in area 2
     TypeS_Area1Spawn=20  #number of "type S" particles spawning in area one
     TypeS_Area2Spawn=20  #number of "type S" particles spawning in area 2
+    
     TypeN_Particles = TypeN_Area1Spawn + TypeN_Area2Spawn
     All_Particles = TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn
+    
     x_bound_low=-1  #lower bound for x and x-randomization
     x_bound_high=10  #upper bound for x and x-randomization
     Cell_Membrane_low=10  #separates areas into area one and area two, and sets y inter-area boundrary
@@ -39,6 +41,15 @@ def main():
     y_bounds = ([y_bound_low], [y_bound_high])  #sets upper and lower y boundaries and the cell membrane level
     Cell_Membrane = (numpy.arange(Cell_Membrane_low, (Cell_Membrane_high + 1)))  #sets width of interarea boundary
     Eligible_Moves = numpy.array([(-1,-1),(-1,0),(-1,1),(0,-1),(0,0),(1,-1),(1,0),(0,1),(1,1)]) #list of possible moves that a particle can make
+    
+    KbT=1  #total energy of system
+    epsilon=1  #sets energy for an interaction
+    negative_epsilon= epsilon * -1
+    UpState_Energy = negative_epsilon
+    DownState_Energy = epsilon
+    Parallel_Transporter_States_Energy = epsilon
+    Perpendicular_Transporter_States_Energy = 0
+    Particle_Interaction_Energy = negative_epsilon
     
     A1TNx = numpy.random.randint(low=x_bound_low + 1, high=x_bound_high, size =((TypeN_Area1Spawn), 1))  #randomization for area one x-bound
     A1TNy = numpy.random.randint(low=y_bound_low + 1, high=Cell_Membrane_low, size =((TypeN_Area1Spawn), 1))  #randomization for area one y-bound
@@ -83,14 +94,6 @@ def main():
     o2 = numpy.zeros((((y_bound_high - y_bound_low)), ((x_bound_high - x_bound_low))))  #occupancy matrix for Type S particles
     for j in range(TypeN_Particles, All_Particles):
         o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1    
-    KbT=1  #total energy of system
-    epsilon=1  #sets energy for an interaction
-    negative_epsilon= epsilon * -1
-    UpState_Energy = negative_epsilon
-    DownState_Energy = epsilon
-    Parallel_Transporter_States_Energy = epsilon
-    Particle_Interaction_Energy = negative_epsilon
-    Perpendicular_Transporter_States_Energy = 0
     
     type1lows = numpy.zeros(n)  #counts what particles of what types are in what area
     type1highs = numpy.zeros(n)
@@ -158,6 +161,14 @@ def main():
             Interaction_Matrix[j][j] = math.inf
         elif Occupancy == Single and o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
             Interaction_Matrix[j][j] = math.inf
+        elif x_cord[j] == 2 and y_cord[j] == 9:
+            Interaction_Matrix[j][j] = math.inf
+        elif x_cord[j] == 2 and y_cord[j] == 12:
+            Interaction_Matrix[j][j] = math.inf
+        elif x_cord[j] == 4 and y_cord[j] == 9:
+            Interaction_Matrix[j][j] = math.inf
+        elif x_cord[j] == 4 and y_cord[j] == 12:
+            Interaction_Matrix[j][j] = math.inf
         elif Cell_Membrane in y_cord[j] and  o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
             Interaction_Matrix[j][j] = math.inf
         elif Cell_Membrane in y_cord[j] and  o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] != 0:
@@ -172,6 +183,9 @@ def main():
                         if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
                              Interaction_Matrix[j][All_Particles + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = UpState_Energy  #sets energy for particle interaction within channel
                              Interaction_Matrix[All_Particles + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = UpState_Energy
+                        if Ising[TypeS_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == -1:
+                             Interaction_Matrix[j][All_Particles + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j])] = DownState_Energy  #sets energy for particle interaction within channel
+                             Interaction_Matrix[All_Particles + (len(TypeS_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeS_Transporter_Channel.index(x_cord[j]), j] = DownState_Energy
                     if Particle_Interaction == Yes:
                         Particle_Energy2()
             elif TypeN_Transporter_Channel in x_cord[j]:
@@ -183,6 +197,9 @@ def main():
                         if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == 1:
                              Interaction_Matrix[j][All_Particles + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j])] = UpState_Energy  #sets energy for particle interaction within channel
                              Interaction_Matrix[All_Particles + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j]), j] = UpState_Energy
+                        if Ising[TypeN_Transporter_Channel.index(x_cord[j]), (y_cord[j] + 1) - Cell_Membrane_low] == -1:
+                             Interaction_Matrix[j][All_Particles + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j])] = DownState_Energy  #sets energy for particle interaction within channel
+                             Interaction_Matrix[All_Particles + (len(TypeN_Transporter_Channel) * ((y_cord[j]) - Cell_Membrane_low)) + TypeN_Transporter_Channel.index(x_cord[j]), j] = DownState_Energy
                     if Particle_Interaction == Yes:
                         Particle_Energy2()
             else:
@@ -199,7 +216,9 @@ def main():
             Transporter_Energy()
         
     for i in range(0, n):
-        print(i, Ising)
+        print(i)
+        if i in range(0, 1000):
+            print(Ising)
         #sets timesteps for which the program runs
         type1low = 0
         type1high = 0
@@ -233,7 +252,8 @@ def main():
                     u = (j - ((len(TypeN_Transporter_Channel) * q) + All_Particles))
                     v = q + 1
                     break
-            if Ising[u, v] == 1:
+            if Ising[u, v] == -1:
+                Ising[u, v] == 1
                 for p in range(0, TypeN_Particles):
                     if ((v - 1) + Cell_Membrane_low) == y_cord[p]: 
                         if TypeN_Transporter_Channel[u] == x_cord[p]:
@@ -244,7 +264,8 @@ def main():
                         if TypeS_Transporter_Channel[u] == x_cord[p]:
                             Interaction_Matrix[j][p] = UpState_Energy
                             Interaction_Matrix[p][j] = UpState_Energy
-            if Ising[u, v] == -1:
+            if Ising[u, v] == 1:
+                Ising[u, v] == -1
                 for p in range(0, TypeN_Particles):
                     if ((v - 1) + Cell_Membrane_low) == y_cord[p]: 
                         if TypeN_Transporter_Channel[u] == x_cord[p]:
@@ -301,9 +322,7 @@ def main():
                 type2low = type2low + 1
             elif type2[q] >= ((Cell_Membrane_low + Cell_Membrane_high)/2): #tells us how many type two particles are in area two
                 type2high = type2high + 1
-        #densitylow = type1low + type2low #number of particles in the lower compartment
-        #densityhigh = type1high + type2high #number of particles in the higher compartment
-        type1highs[i] = type1high#remove these four lines when not doing diffussion testing
+        type1highs[i] = type1high
         type2highs[i] = type2high
         type1lows[i] = type1low
         type2lows[i] = type2low
