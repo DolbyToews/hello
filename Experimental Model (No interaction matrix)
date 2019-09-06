@@ -9,7 +9,7 @@ def main():
     Single=1
     Occupancy=Multiple #sets if more than one particle can occupy a point
     
-    n=500000  #number of timesteps taken
+    n=100000  #number of timesteps taken
     numberline=numpy.arange(n)
     Value_Storage = []
     Value_Storage1 = []
@@ -17,13 +17,13 @@ def main():
     Value_Storage3 = []
     TypeN_Area1Spawn=40  #number of "type N" particles spawning in area one
     TypeN_Area2Spawn=20  #number of "type N" particles spawning in area 2
-    TypeS_Area1Spawn=20  #number of "type S" particles spawning in area one
+    TypeS_Area1Spawn=10  #number of "type S" particles spawning in area one
     TypeS_Area2Spawn=20  #number of "type S" particles spawning in area 2
     x_bound_low=-1  #lower bound for x and x-randomization
     x_bound_high=10  #upper bound for x and x-randomization
     Cell_Membrane_low=7  #separates areas into area one and area two, and sets y inter-area boundrary
     Cell_Membrane_high=13  #top of inter-area boundarary
-    Energy_Barrier=12
+    Energy_Barrier=10
     y_bound_low=-1  #lower bound for y and y-randomization
     y_bound_high=21  #upper bound for y and y randomization
     #in order for transporters to work, the above lists must have the same number of entries
@@ -150,17 +150,21 @@ def main():
             if y_cord_old[j] == Energy_Barrier:
                 if y_cord[j] == Energy_Barrier + 1:
                     flux1 = flux1 + 1
-            if y_cord_old[j] == Energy_Barrier + 1:
+            elif y_cord_old[j] == Energy_Barrier + 1:
                 if y_cord[j] == Energy_Barrier:
                     flux1 = flux1 - 1
+            else:
+                flux1 = flux1
                     
         if j in range(TypeN_Area1Spawn + TypeN_Area2Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn): 
             if y_cord_old[j] == Energy_Barrier:
                 if y_cord[j] == Energy_Barrier + 1:
                     flux2 = flux2 + 1
-            if y_cord_old[j] == Energy_Barrier + 1:
+            elif y_cord_old[j] == Energy_Barrier + 1:
                 if y_cord[j] == Energy_Barrier:
                     flux2 = flux2 - 1
+            else:
+                flux2 = flux2
 
         if j in range(0, TypeN_Area1Spawn):  #sends Type N particles to starting position if they leave area one
             if y_cord[j] == Energy_Barrier + 1:
