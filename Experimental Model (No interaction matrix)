@@ -69,8 +69,6 @@ def main():
         o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1 
         
     KbT=1  #total energy of system
-    epsilon=1  #sets energy for an interaction
-    negepsilon= epsilon * -1
 
     type1lows = numpy.zeros(n)  #counts what particles of what types are in what area
     type1highs = numpy.zeros(n)
@@ -151,43 +149,34 @@ def main():
         if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)): 
             if y_cord_old[j] == Energy_Barrier:
                 if y_cord[j] == Energy_Barrier + 1:
-                    flux1 = flux1 + 1/2
-                if y_cord[j] == Energy_Barrier - 1:
-                    flux1 = flux1 - 1/2
-            elif y_cord_old[j] == Energy_Barrier + 1:
+                    flux1 = flux1 + 1
+            if y_cord_old[j] == Energy_Barrier + 1:
                 if y_cord[j] == Energy_Barrier:
-                    flux1 = flux1 - 1/2
-            elif y_cord_old[j] == Energy_Barrier - 1:
-                if y_cord[j] == Energy_Barrier:
-                    flux1 = flux1 + 1/2
+                    flux1 = flux1 - 1
                     
         if j in range(TypeN_Area1Spawn + TypeN_Area2Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn): 
             if y_cord_old[j] == Energy_Barrier:
                 if y_cord[j] == Energy_Barrier + 1:
-                    flux2 = flux2 + 1/2
-                if y_cord[j] == Energy_Barrier - 1:
-                    flux2 = flux2 - 1/2
-            elif y_cord_old[j] == Energy_Barrier + 1:
+                    flux2 = flux2 + 1
+            if y_cord_old[j] == Energy_Barrier + 1:
                 if y_cord[j] == Energy_Barrier:
-                    flux2 = flux2 - 1/2
-            elif y_cord_old[j] == Energy_Barrier - 1:
-                if y_cord[j] == Energy_Barrier:
-                    flux2 = flux2 + 1/2
+                    flux2 = flux2 - 1
+
         if j in range(0, TypeN_Area1Spawn):  #sends Type N particles to starting position if they leave area one
-            if y_cord[j] == Cell_Membrane_high + 1:
+            if y_cord[j] == Energy_Barrier + 1:
                 Position_Matrix[j] = Return_To_Start[j]
         
         if j in range(TypeN_Area1Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn):  #sends Type N particles to starting position if they leave area two
-            if y_cord[j] == Cell_Membrane_low - 1:
+            if y_cord[j] == Energy_Barrier - 1:
                 Position_Matrix[j] = Return_To_Start[j]
                 
         if j in range(TypeN_Area1Spawn + TypeN_Area2Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn):
-            if y_cord[j] == Cell_Membrane_high + 1:
+            if y_cord[j] == Energy_Barrier + 1:
                 Position_Matrix[j] = Return_To_Start[j]
         
         if j in range(TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn, TypeN_Area1Spawn + TypeN_Area2Spawn + TypeS_Area1Spawn + TypeS_Area2Spawn):
-            if y_cord[j] == Cell_Membrane_low - 1:
-                Position_Matrix[j] = Return_To_Start[j]
+            if y_cord[j] == Energy_Barrier - 1:
+                Position_Matrix[j] = Return_To_Start[j] 
                 
         if j in range(0, (TypeN_Area1Spawn + TypeN_Area2Spawn)):  #changes occupancy matrix to give accurate results
             o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o1[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
@@ -203,15 +192,15 @@ def main():
         type1 = s[0]#y-coord of type 1 particles spawning in the lower area
         type2 = s[1]#y-coord of type 2 particles spawning in the lower area
         for q in range(0, ((TypeN_Area1Spawn + TypeN_Area2Spawn))): 
-            if type1[q] < Cell_Membrane_high: #tells us how many type one particles are in area one
+            if type1[q] < Energy_Barrier: #tells us how many type one particles are in area one
                 type1low = type1low + 1
-            elif type1[q] >= Cell_Membrane_high:#tells us how many type one particles are in area two
+            elif type1[q] >= Energy_Barrier:#tells us how many type one particles are in area two
                 #maybe make it so that transporters aren't included in area two, not sure yet
                 type1high = type1high + 1
         for q in range(0, (TypeS_Area1Spawn + TypeS_Area2Spawn)):
-            if type2[q] < Cell_Membrane_high:#tells us how many type two particles are in area one
+            if type2[q] < Energy_Barrier:#tells us how many type two particles are in area one
                 type2low = type2low + 1
-            elif type2[q] >= Cell_Membrane_high: #tells us how many type two particles are in area two
+            elif type2[q] >= Energy_Barrier: #tells us how many type two particles are in area two
                 type2high = type2high + 1
         type1highs[i] = type1high
         type2highs[i] = type2high
@@ -236,6 +225,7 @@ def main():
     pylab.xlabel("Timesteps (n)")
     pylab.savefig("highgrapht2.png",dpi=600) 
     pylab.show()
+    print(flux1)
     pylab.title("Type2flux") 
     pylab.xlim([0, n])
     pylab.ylim([-50, 50])
@@ -244,6 +234,7 @@ def main():
     pylab.plot(numberline, Type2flux)
     pylab.savefig("highgrapht2.png",dpi=600) 
     pylab.show()
+    print(flux2)
     pylab.title("intracellular type2") 
     pylab.xlim([0, n])
     pylab.ylim([0, (TypeS_Area1Spawn + TypeS_Area2Spawn)])
