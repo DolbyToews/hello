@@ -45,8 +45,7 @@ def main():
     KbT=1  #total energy of system
     epsilon=1  #sets energy for an interaction
     negative_epsilon= epsilon * -1
-    
-    UpState_Energy = negative_epsilon
+    UpState_Energy = negative_epsilon  
     DownState_Energy = epsilon
     Parallel_Transporter_States_Energy = epsilon
     Perpendicular_Transporter_States_Energy = 0
@@ -78,11 +77,15 @@ def main():
     Ising_precursor = numpy.random.choice(Ising_States, [len(TypeN_Transporter_Channel), len(Cell_Membrane)])#randomization for area one x-bound
     zeros = numpy.zeros((len(TypeN_Transporter_Channel), 1))
     Ising = numpy.concatenate((zeros, Ising_precursor, zeros), axis=1)  #Ising model for transporter model
-    Transporter_y_cord = numpy.arange(0, len(TypeN_Transporter_Channel))  #
+    Transporter_y_cord = numpy.arange(0, len(TypeN_Transporter_Channel))  
+    
+    
     if mode == Holes:
         Particles_and_Transporters = (All_Particles, All_Particles)
     if mode == Transporter:
         Particles_and_Transporters = (All_Particles + ((len(Cell_Membrane) + 1) * len(TypeN_Transporter_Channel)), All_Particles + ((len(Cell_Membrane) + 1) * len(TypeN_Transporter_Channel)))
+        
+        
     Interaction_Matrix = numpy.zeros(Particles_and_Transporters)
     Ordered_Transporters = (TypeN_Transporter_Channel, TypeS_Transporter_Channel)
     Transporter_List = numpy.zeros((len(TypeN_Transporter_Channel), 2))
@@ -301,7 +304,7 @@ def main():
             o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] = o2[((y_cord[j] - (y_bound_low + 1)), (x_cord[j] - (x_bound_low + 1)))] + 1
             o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] = o2[((y_cord_old[j] - (y_bound_low + 1)), (x_cord_old[j] - (x_bound_low + 1)))] - 1
                 
-        s = numpy.vsplit(x[1], [TypeN_Particles])#splits up y-coordinates of particles
+        s = numpy.vsplit(y_cord, [TypeN_Particles])#splits up y-coordinates of particles
         type1 = s[0]#y-coord of type 1 particles spawning in the lower area
         type2 = s[1]#y-coord of type 2 particles spawning in the lower area
         for q in range(0, TypeN_Particles): 
@@ -315,12 +318,14 @@ def main():
                 type2low = type2low + 1
             elif type2[q] >= ((Cell_Membrane_low + Cell_Membrane_high)/2): #tells us how many type two particles are in area two
                 type2high = type2high + 1
+        #tells us how many particles of each type are in each area
         type1highs[i] = type1high
         type2highs[i] = type2high
         type1lows[i] = type1low
         type2lows[i] = type2low
         if i in range(50000, n):
             Value_Storage.append(type2highs[i])
+    #tracks how many Type 2 particles are in the upper area (this is how I've been running a lot of my tests)
     pylab.title("intracellular type2") 
     pylab.xlim([0, n])
     pylab.ylim([0, (TypeS_Area1Spawn + TypeS_Area2Spawn)])
